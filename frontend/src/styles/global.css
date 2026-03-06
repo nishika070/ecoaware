@@ -1,0 +1,27 @@
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  font-family: Arial, sans-serif;
+  background:#f5f7fa;
+}
+
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:20px;}
+
+  .dashboard-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  gap:20px;
+  margin-top:20px;
+}
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:40px 20px;
+}
