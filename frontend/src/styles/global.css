@@ -1,27 +1,142 @@
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
+:root {
+  --bg: #ecf5f0;
+  --bg-dark: #173527;
+  --card: #ffffff;
+  --text: #15271f;
+  --muted: #587065;
+  --accent: #1f8f5f;
+  --accent-dark: #156645;
+  --danger: #af2c2c;
+  --warning: #d18d00;
+  --shadow: 0 14px 34px rgba(16, 43, 33, 0.1);
 }
 
-body{
-  font-family: Arial, sans-serif;
-  background:#f5f7fa;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:20px;}
-
-  .dashboard-grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
-  gap:20px;
-  margin-top:20px;
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at 10% 10%, #f6fbf8 0%, var(--bg) 45%, #e5f0ea 100%);
 }
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:40px 20px;
+
+a {
+  color: inherit;
+}
+
+.page-shell {
+  min-height: calc(100vh - 76px);
+  padding: 32px 24px 48px;
+}
+
+.container {
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.page-heading {
+  margin-bottom: 22px;
+}
+
+.page-heading h1 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  margin-bottom: 8px;
+}
+
+.page-heading p {
+  color: var(--muted);
+  max-width: 780px;
+  line-height: 1.5;
+}
+
+.panel {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 100px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.chip-warning {
+  background: rgba(209, 141, 0, 0.16);
+  color: #7f5600;
+}
+
+.chip-danger {
+  background: rgba(175, 44, 44, 0.14);
+  color: #7d1515;
+}
+
+.chip-safe {
+  background: rgba(31, 143, 95, 0.15);
+  color: #136744;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid #e4efe9;
+  font-size: 0.92rem;
+}
+
+th {
+  color: #355045;
+  font-weight: 700;
+}
+
+@media (max-width: 960px) {
+  .grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .page-shell {
+    padding: 24px 16px 36px;
+  }
+
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,0 +1,13 @@
+.temp-page {
+  display: grid;
+  gap: 16px;
+}
+
+.temp-page h2 {
+  margin-bottom: 8px;
+}
+
+.highlight {
+  color: #4e665c;
+  line-height: 1.45;
+}

@@ -1,26 +1,25 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import "../styles/components/Navbar.css";
 
-function Navbar(){
-
-  return(
-
+function Navbar() {
+  return (
     <nav className="navbar">
+      <div className="container navbar-inner">
+        <Link to="/" className="logo" aria-label="EcoAware Home">
+          <span className="logo-badge">EA</span>
+          EcoAware Delhi
+        </Link>
 
-      <div className="logo">EcoAware</div>
-
-      <div className="nav-links">
-        <Link to="/">Home</Link>
-        <Link to="/aqi">AQI</Link>
-        <Link to="/temperature">Temperature</Link>
-        <Link to="/policies">Policies</Link>
-        <Link to="/contact">Contact</Link>
+        <div className="nav-links">
+          <NavLink to="/">Home</NavLink>
+          <NavLink to="/aqi">AQI</NavLink>
+          <NavLink to="/temperature">Temperature</NavLink>
+          <NavLink to="/policies">Policy Insights</NavLink>
+          <NavLink to="/contact">Contact</NavLink>
+        </div>
       </div>
-
     </nav>
-
-  )
-
+  );
 }
 
-export default Navbar
+export default Navbar;

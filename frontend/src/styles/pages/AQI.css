@@ -1,0 +1,16 @@
+.aqi-page {
+  display: grid;
+  gap: 16px;
+}
+
+.alert-strip {
+  border-left: 5px solid #af2c2c;
+}
+
+.alert-strip h2 {
+  margin-bottom: 8px;
+}
+
+.alert-strip p {
+  color: #4d655b;
+}

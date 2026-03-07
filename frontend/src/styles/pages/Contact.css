@@ -1,0 +1,25 @@
+.contact-page {
+  display: grid;
+  gap: 16px;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.contact-grid h2 {
+  margin-bottom: 8px;
+  font-size: 1.02rem;
+}
+
+.contact-grid p {
+  color: #4f685d;
+}
+
+@media (max-width: 760px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}

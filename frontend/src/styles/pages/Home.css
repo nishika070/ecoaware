@@ -1,22 +1,76 @@
-.page-title{
-  font-size:32px;
-  font-weight:700;
-  margin-bottom:20px;
+.home-page {
+  display: grid;
+  gap: 18px;
 }
 
-.dashboard-grid{
-  display:grid;
-  grid-template-columns: repeat(4,1fr);
-  gap:20px;
+.hero {
+  background: linear-gradient(150deg, #1b573d, #173527);
+  color: #f6fff9;
+  padding: 26px;
 }
 
-.section{
-  margin-top:40px;
+.hero h1 {
+  font-size: clamp(1.7rem, 3.2vw, 2.7rem);
+  margin: 10px 0;
+  line-height: 1.2;
 }
-.chart-container{
-  margin-top:40px;
-  background:white;
-  padding:25px;
-  border-radius:14px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+
+.hero p {
+  line-height: 1.55;
+  max-width: 880px;
+}
+
+.metrics-grid .card {
+  min-height: 132px;
+}
+
+.section-split {
+  align-items: stretch;
+}
+
+.chart-panel h2 {
+  margin-bottom: 16px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  gap: 10px;
+}
+
+.section-head h2 {
+  font-size: 1.25rem;
+}
+
+.factor-grid {
+  margin-top: 6px;
+}
+
+.factor-card {
+  border: 1px solid #dfebe5;
+  border-radius: 14px;
+  padding: 16px;
+  background: #f9fcfb;
+}
+
+.factor-card h3 {
+  margin-bottom: 10px;
+}
+
+.factor-card p {
+  margin-bottom: 6px;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding: 20px;
+  }
+
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

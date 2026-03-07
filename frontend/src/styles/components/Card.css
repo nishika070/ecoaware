@@ -1,23 +1,31 @@
-.card{
-  background:white;
-  border-radius:14px;
-  padding:22px;
-  text-align:center;
-  box-shadow:0 5px 15px rgba(0,0,0,0.08);
-  transition:0.2s;
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  border: 1px solid #e1eee8;
+  transition: transform 0.2s ease;
 }
 
-.card:hover{
-  transform:translateY(-4px);
+.card:hover {
+  transform: translateY(-3px);
 }
 
-.card-title{
-  font-size:14px;
-  color:#666;
+.card-title {
+  font-size: 0.86rem;
+  color: #4f675d;
+  font-weight: 600;
+  letter-spacing: 0.2px;
 }
 
-.card-value{
-  font-size:26px;
-  font-weight:700;
-  margin-top:6px;
+.card-value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  margin-top: 8px;
+}
+
+.card-note {
+  margin-top: 8px;
+  color: #5c746a;
+  font-size: 0.85rem;
 }

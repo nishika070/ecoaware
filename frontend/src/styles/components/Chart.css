@@ -1,7 +1,4 @@
-.chart-container{
-  margin-top:40px;
-  background:white;
-  padding:25px;
-  border-radius:14px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+.chart-wrap {
+  width: 100%;
+  height: 320px;
 }

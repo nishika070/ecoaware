@@ -1,7 +1,36 @@
+.advisory {
+  background: linear-gradient(160deg, #ffffff, #f7fbf9);
+}
 
-.advisory{
-  margin-top:40px;
-  padding:20px;
-  background:#f5f7fa;
-  border-radius:10px;
+.advisory-head {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.advisory h2 {
+  font-size: 1.2rem;
+}
+
+.advisory-subtext {
+  margin: 12px 0 14px;
+  line-height: 1.45;
+  color: #516a5f;
+}
+
+.advisory ul {
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.advisory li {
+  line-height: 1.42;
+}
+
+@media (max-width: 720px) {
+  .advisory-head {
+    flex-direction: column;
+  }
 }

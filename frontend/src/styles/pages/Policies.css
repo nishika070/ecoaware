@@ -1,0 +1,14 @@
+.policy-page {
+  display: grid;
+  gap: 16px;
+}
+
+.policy-card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.policy-card p {
+  color: #4f685d;
+  line-height: 1.45;
+}
