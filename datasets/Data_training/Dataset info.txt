@@ -1,0 +1,52 @@
+**AS ON DAY 1
+
+AQI data:
+Taken from: https://airquality.cpcb.gov.in/ccr/#/caaqm-dashboard-all/caaqm-landing/aqi-repository
+Focus is on AQI stations in Delhi.
+Stations covered:
+1.  Lodhi Road (IITM)           → Central Delhi (Baseline)	DONE
+2.  Anand Vihar (DPCC)          → East Delhi (Traffic hotspot)  	DONE
+3.  Ashok Vihar (DPCC)          → Northwest (Residential)	DONE
+4.  Okhla Phase-2 (DPCC)        → Southeast Industrial		DONE
+5.  Jahangirpuri (DPCC)         → North Delhi (Most polluted '24)	DONE
+6.  Chandni Chowk (IITM)        → Old Delhi (Market dust)	DONE
+7.  Sirifort (CPCB)             → South Delhi (Diplomatic)	DONE
+8.  Patparganj (DPCC)           → East Industrial  		DONE
+9.  Jawaharlal Nehru Stadium    → Central-South Sports		DONE
+10. NSIT Dwarka (CPCB)          → Southwest (Cleanest area)	DONE
+11. IGI Airport T3 (IMD)        → South Airport			DONE
+12. Punjabi Bagh (DPCC)         → West Residential ↑PM10	DONE
+13. DTU (CPCB)                  → Northeast University		DONE
+14. ITO (CPCB)                  → Central Traffic Core		DONE
+15. Wazirpur (DPCC)             → Industrial Northwest ↑Severe		DONE
+16. Rohini (DPCC)               → Northwest Residential ↑Severe  	DONE
+17. Bawana                      → Northwest Industrial (Worst AQI)	DONE	
+18. Vivek Vihar                 → East Residential ↑Severe		DONE
+19. Narela                      → Northwest Rural fringe ↑Severe	DONE
+
+WHY?
+95% Delhi covered in these stations (though there are 46 in total)
+Northwest (5): Jahangirpuri, Ashok Vihar, Wazirpur, Rohini, Bawana
+North (3): DTU, Chandni Chowk, Narela
+Northeast (2): Patparganj, Vivek Vihar
+East (2): Anand Vihar, Okhla Phase-2
+Central (4): Lodhi Rd, ITO, JLN Stadium, Sirifort
+South (3): RK Puram, IGI T3, NSIT Dwarka
+West (1): Punjabi Bagh
+
+Have daily data for these stations since 2017-present
+
+
+
+**UPDATES AS ON DAY 2
+Stations updated to 20
+Chandni Chowk replaced with nearby station - DU north campus due to highly sparse data
+New station added- Mathura road
+
+Data will now be recorded for 2018 onwards
+
+AQI_merged_all.csv --> merged csv of all
+script for merging --> merge_csvs.py
+
+DATA PREPROCESSING
+
