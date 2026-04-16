@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Temperature | EcoAware Delhi{% endblock %}
+
+{% block content %}
+  <main class="page-shell">
+    <div class="container temp-page">
+      <section class="page-heading">
+        <h1>Temperature & Heat Stress Analysis</h1>
+        <p>
+          Structured temperature page preserved from your older flow. Right now it uses the shared
+          environmental dataset layer because the repo does not yet include a separate temperature dataset.
+        </p>
+      </section>
+
+      <form method="get" action="{{ url_for('temperature_page') }}" class="location-selector panel selector-panel">
+        <label for="station">Select Delhi Station:</label>
+        <select id="station" name="station">
+          {% for station in stations %}
+            <option value="{{ station }}" {% if station == selected_station %}selected{% endif %}>{{ station }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="primary-btn">Update View</button>
+      </form>
+
+      <section class="grid grid-3">
+        <article class="card">
+          <div class="card-title">Current Environmental Stress</div>
+          <div class="card-value">{{ latest_station_aqi }}</div>
+          <p class="card-note">{{ selected_station }} latest AQI on {{ latest_station_date }}</p>
+        </article>
+        <article class="card">
+          <div class="card-title">Highest Stress Month</div>
+          <div class="card-value">{{ worst_month.month }}</div>
+          <p class="card-note">Average AQI {{ worst_month.aqi }}</p>
+        </article>
+        <article class="card">
+          <div class="card-title">Lowest Stress Month</div>
+          <div class="card-value">{{ best_month.month }}</div>
+          <p class="card-note">Average AQI {{ best_month.aqi }}</p>
+        </article>
+      </section>
+
+      <section class="panel">
+        <h2>Seasonal environmental pattern</h2>
+        <p class="highlight">{{ note }}</p>
+        <div class="chart-wrap">
+          <canvas id="temperaturePatternChart"></canvas>
+        </div>
+      </section>
+    </div>
+  </main>
+{% endblock %}
+
+{% block page_scripts %}
+  <script>
+    window.ecoAwareTemperatureChart = {{ monthly_pattern | tojson }};
+  </script>
+{% endblock %}

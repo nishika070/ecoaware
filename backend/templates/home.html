@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Home | EcoAware Delhi{% endblock %}
+
+{% block page_head %}
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+{% endblock %}
+
+{% block content %}
+  <main class="page-shell home-shell">
+    <div class="container home-page">
+      <section class="hero hero-grid">
+        <div class="hero-copy">
+          <p class="chip chip-warning">{{ hero.eyebrow }}</p>
+          <h1>{{ hero.title }}</h1>
+          <p>{{ hero.description }}</p>
+
+          <form method="get" action="{{ url_for('home') }}" class="station-inline-panel">
+            <label for="station">Select Station</label>
+            <select id="station" name="station" onchange="this.form.submit()">
+              {% for station in stations %}
+                <option value="{{ station }}" {% if station == selected_station %}selected{% endif %}>{{ station }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-glow"></div>
+          <div class="hero-visual-card">
+            <p class="hero-label">Current focus</p>
+            <h2>{{ selected_station }}</h2>
+            <div class="hero-stat-row">
+              <div>
+                <span>City prediction</span>
+                <strong>{{ secondary_metrics[0].value }}</strong>
+              </div>
+              <div>
+                <span>Stations tracked</span>
+                <strong>{{ secondary_metrics[1].value }}</strong>
+              </div>
+            </div>
+            <p class="hero-mini-text">
+              Live home view tailored to the selected Delhi station and your project dataset.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="home-layout">
+        <div class="home-main">
+          <section class="grid grid-4 metrics-grid">
+            {% for metric in primary_metrics %}
+              <article class="card card-strong">
+                <div class="card-title">{{ metric.title }}</div>
+                <div class="card-value">{{ metric.value }}</div>
+                <p class="card-note">{{ metric.note }}</p>
+              </article>
+            {% endfor %}
+          </section>
+
+          <section class="grid grid-2 support-metrics">
+            {% for metric in secondary_metrics %}
+              <article class="panel support-card">
+                <div class="card-title">{{ metric.title }}</div>
+                <div class="card-value">{{ metric.value }}</div>
+                <p class="card-note">{{ metric.note }}</p>
+              </article>
+            {% endfor %}
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Live Temperature</p>
+                <h2>Current temperature across key Delhi locations</h2>
+              </div>
+            </div>
+
+            <section id="temperature-cards" class="grid grid-4">
+              <article class="card">
+                <div class="card-title">Anand Vihar</div>
+                <div class="card-value" id="temp-anand-vihar">Loading...</div>
+              </article>
+
+              <article class="card">
+                <div class="card-title">RK Puram</div>
+                <div class="card-value" id="temp-rk-puram">Loading...</div>
+              </article>
+
+              <article class="card">
+                <div class="card-title">Punjabi Bagh</div>
+                <div class="card-value" id="temp-punjabi-bagh">Loading...</div>
+              </article>
+
+              <article class="card">
+                <div class="card-title">Mandir Marg</div>
+                <div class="card-value" id="temp-mandir-marg">Loading...</div>
+              </article>
+            </section>
+          </section>
+
+          <section class="panel chart-panel">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Station Trend</p>
+                <h2>{{ selected_station }} AQI movement</h2>
+              </div>
+            </div>
+            <div class="chart-wrap home-chart-wrap">
+              <canvas id="homeTrendChart"></canvas>
+            </div>
+          </section>
+
+          <section class="panel map-panel">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Delhi Hotspots</p>
+                <h2>Current AQI spread across monitored stations</h2>
+              </div>
+            </div>
+            <div id="delhiHotspotMap" class="hotspot-map"></div>
+          </section>
+        </div>
+
+        <aside class="home-sidebar">
+          <div class="advisory advisory-sticky panel">
+            <div class="advisory-head">
+              <h2>Health Advisory</h2>
+              <span class="chip chip-danger">{{ advisory["tag"] }}</span>
+            </div>
+
+            <p class="advisory-subtext">{{ advisory["summary"] }}</p>
+
+            <ul>
+              {% for item in advisory["items"] %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </aside>
+      </section>
+
+      <footer class="site-footer panel">
+        <div class="footer-grid">
+          <div>
+            <h2>References</h2>
+            <p>AQI dataset source: CPCB AQI repository and your merged Delhi dataset files.</p>
+            <p>Map layer: OpenStreetMap tiles via Leaflet.</p>
+            <p>Prediction layer: Random Forest / Decision Tree flow from your Python backend.</p>
+          </div>
+
+          <div>
+            <h2>Contact</h2>
+            <p>Contact Number: Add your number here</p>
+            <p>Email: Add your email here</p>
+          </div>
+
+          <div>
+            <h2>Collaborators</h2>
+            <p>Aradhana Singh</p>
+            <p>Nishika</p>
+            <p>Navya Jain</p>
+            <p>Palak Harbola</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </main>
+{% endblock %}
+
+{% block page_scripts %}
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    window.ecoAwareHomeChart = {{ chart | tojson }};
+    window.ecoAwareHomeMap = {{ map | tojson }};
+  </script>
+{% endblock %}
