@@ -4,6 +4,9 @@ from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
 
 
+# ==============================
+# LOAD + RESHAPE DATA
+# ==============================
 def load_and_merge_data(folder_path):
     dataframes = []
 
@@ -30,11 +33,17 @@ def load_and_merge_data(folder_path):
     return pd.concat(dataframes, ignore_index=True)
 
 
+# ==============================
+# CLEAN DATA
+# ==============================
 def clean_data(df):
     df = df.dropna(subset=["AQI"])
     return df
 
 
+# ==============================
+# PROCESS DATE + MONTH
+# ==============================
 def process_date(df):
     df["Date"] = pd.to_numeric(df["Date"], errors='coerce')
 
@@ -44,12 +53,18 @@ def process_date(df):
     return df
 
 
+# ==============================
+# ENCODE LOCATION
+# ==============================
 def encode_data(df):
     le = LabelEncoder()
     df["location"] = le.fit_transform(df["location"].astype(str))
     return df
 
 
+# ==============================
+# OUTLIER HANDLING
+# ==============================
 def handle_outliers(df):
     Q1 = df["AQI"].quantile(0.25)
     Q3 = df["AQI"].quantile(0.75)
@@ -63,11 +78,17 @@ def handle_outliers(df):
     return df
 
 
+# ==============================
+# SCALE DATA
+# ==============================
 def scale_data(X):
     scaler = MinMaxScaler()
     return scaler.fit_transform(X)
 
 
+# ==============================
+# SPLIT DATA
+# ==============================
 def split_data(df):
     X = df[["Date", "Month", "location"]]
     y = df["AQI"]
@@ -77,6 +98,9 @@ def split_data(df):
     return train_test_split(X, y, test_size=0.2, random_state=42)
 
 
+# ==============================
+# SAVE DATA
+# ==============================
 def save_data(X_train, X_test, y_train, y_test, output_path):
     pd.DataFrame(X_train).to_csv(os.path.join(output_path, "X_train.csv"), index=False)
     pd.DataFrame(X_test).to_csv(os.path.join(output_path, "X_test.csv"), index=False)
@@ -84,6 +108,9 @@ def save_data(X_train, X_test, y_train, y_test, output_path):
     y_test.to_csv(os.path.join(output_path, "y_test.csv"), index=False)
 
 
+# ==============================
+# MAIN
+# ==============================
 def run_preprocessing():
     folder_path = "../datasets/Data_training"
     output_path = "../datasets"
