@@ -6,10 +6,9 @@
   <main class="page-shell">
     <div class="container temp-page">
       <section class="page-heading">
-        <h1>Temperature & Heat Stress Analysis</h1>
+        <h1>Temperature, Precipitation & AQI</h1>
         <p>
-          Structured temperature page preserved from your older flow. Right now it uses the shared
-          environmental dataset layer because the repo does not yet include a separate temperature dataset.
+          Live station weather with next-5-day forecast, rain probability, and pollutant indicators from Open-Meteo.
         </p>
       </section>
 
@@ -23,37 +22,90 @@
         <button type="submit" class="primary-btn">Update View</button>
       </form>
 
-      <section class="grid grid-3">
+      <section class="grid grid-4">
         <article class="card">
-          <div class="card-title">Current Environmental Stress</div>
-          <div class="card-value">{{ latest_station_aqi }}</div>
-          <p class="card-note">{{ selected_station }} latest AQI on {{ latest_station_date }}</p>
+          <div class="card-title">Current Temperature</div>
+          <div class="card-value">{% if current_weather.temperature_c is not none %}{{ '%.1f'|format(current_weather.temperature_c) }} C{% else %}Unavailable{% endif %}</div>
+          <p class="card-note">{{ current_weather.condition or "Condition unavailable" }}</p>
         </article>
         <article class="card">
-          <div class="card-title">Highest Stress Month</div>
-          <div class="card-value">{{ worst_month.month }}</div>
-          <p class="card-note">Average AQI {{ worst_month.aqi }}</p>
+          <div class="card-title">Feels Like</div>
+          <div class="card-value">{% if current_weather.feels_like_c is not none %}{{ '%.1f'|format(current_weather.feels_like_c) }} C{% else %}Unavailable{% endif %}</div>
+          <p class="card-note">Humidity {% if current_weather.humidity_percent is not none %}{{ current_weather.humidity_percent|round|int }}%{% else %}Unavailable{% endif %}</p>
         </article>
         <article class="card">
-          <div class="card-title">Lowest Stress Month</div>
-          <div class="card-value">{{ best_month.month }}</div>
-          <p class="card-note">Average AQI {{ best_month.aqi }}</p>
+          <div class="card-title">US AQI</div>
+          <div class="card-value">{% if air_quality.us_aqi is not none %}{{ air_quality.us_aqi|round|int }}{% else %}Unavailable{% endif %}</div>
+          <p class="card-note">PM2.5 {% if air_quality.pm2_5 is not none %}{{ '%.1f'|format(air_quality.pm2_5) }}{% else %}Unavailable{% endif %} ug/m3</p>
+        </article>
+        <article class="card">
+          <div class="card-title">Today's Rain</div>
+          <div class="card-value">{% if current_weather.precip_mm is not none %}{{ '%.1f'|format(current_weather.precip_mm) }} mm{% else %}Unavailable{% endif %}</div>
+          <p class="card-note">Wind {% if current_weather.wind_speed_kmh is not none %}{{ current_weather.wind_speed_kmh|round|int }} km/h{% else %}Unavailable{% endif %}</p>
         </article>
       </section>
 
       <section class="panel">
-        <h2>Seasonal environmental pattern</h2>
+        <h2>5-day forecast</h2>
         <p class="highlight">{{ note }}</p>
         <div class="chart-wrap">
           <canvas id="temperaturePatternChart"></canvas>
         </div>
       </section>
+
+      {% if weather_error %}
+        <section class="panel">
+          <p class="highlight">{{ weather_error }}</p>
+        </section>
+      {% else %}
+        <section class="grid grid-4 forecast-grid">
+          {% for day in forecast_days %}
+            <article class="card forecast-card">
+              <div class="card-title">{{ day.day_label }} - {{ day.date_label }}</div>
+              <div class="card-value">
+                {% if day.max_temp is not none %}{{ day.max_temp|round|int }} C{% else %}--{% endif %}
+                /
+                {% if day.min_temp is not none %}{{ day.min_temp|round|int }} C{% else %}--{% endif %}
+              </div>
+              <p class="card-note">{{ day.condition }}</p>
+              <p class="card-note">Rain chance: {% if day.precip_probability is not none %}{{ day.precip_probability|round|int }}%{% else %}Unavailable{% endif %}</p>
+              <p class="card-note">Precipitation: {% if day.precip_mm is not none %}{{ '%.1f'|format(day.precip_mm) }} mm{% else %}Unavailable{% endif %}</p>
+              <p class="card-note">UV max: {% if day.uv_index is not none %}{{ '%.1f'|format(day.uv_index) }}{% else %}Unavailable{% endif %}</p>
+            </article>
+          {% endfor %}
+        </section>
+
+        <section class="grid grid-2">
+          <article class="panel">
+            <h2>Hottest day in next 5 days</h2>
+            {% if max_day %}
+              <p class="hotspot-value">{{ max_day.day_label }} ({{ max_day.date_label }})</p>
+              <p class="card-note">Maximum temperature: {% if max_day.max_temp is not none %}{{ max_day.max_temp|round|int }} C{% else %}Unavailable{% endif %}</p>
+            {% else %}
+              <p class="card-note">Forecast unavailable</p>
+            {% endif %}
+          </article>
+          <article class="panel">
+            <h2>Highest rain chance</h2>
+            {% if wettest_day %}
+              <p class="hotspot-value">{{ wettest_day.day_label }} ({{ wettest_day.date_label }})</p>
+              <p class="card-note">Probability: {% if wettest_day.precip_probability is not none %}{{ wettest_day.precip_probability|round|int }}%{% else %}Unavailable{% endif %}</p>
+            {% else %}
+              <p class="card-note">Forecast unavailable</p>
+            {% endif %}
+          </article>
+        </section>
+      {% endif %}
+
+      {% if fetched_at %}
+        <p class="card-note">Last updated: {{ fetched_at }}</p>
+      {% endif %}
     </div>
   </main>
 {% endblock %}
 
 {% block page_scripts %}
   <script>
-    window.ecoAwareTemperatureChart = {{ monthly_pattern | tojson }};
+    window.ecoAwareTemperatureChart = {{ forecast_chart | tojson }};
   </script>
 {% endblock %}

@@ -9,8 +9,8 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 
-from station_climate import STATION_CLIMATE
 from station_map import STATION_COORDINATES
+from weather_service import get_station_weather_snapshot
 
 try:
     import joblib
@@ -72,12 +72,26 @@ def format_station_name(raw_name: str) -> str:
     return " ".join(cleaned.split())
 
 
+def format_number(value: Any, digits: int = 1) -> str:
+    if value is None:
+        return "Unavailable"
+    try:
+        return f"{round(float(value), digits)}"
+    except (TypeError, ValueError):
+        return "Unavailable"
+
+
+def format_int(value: Any) -> str:
+    if value is None:
+        return "Unavailable"
+    try:
+        return str(int(round(float(value))))
+    except (TypeError, ValueError):
+        return "Unavailable"
+
+
 @lru_cache(maxsize=1)
 def load_or_train_model() -> tuple[Any, str]:
-    """
-    Use an imported model file when available.
-    Otherwise train a fresh model from the project dataset.
-    """
     if joblib and RANDOM_FOREST_MODEL_PATH.exists():
         return joblib.load(RANDOM_FOREST_MODEL_PATH), "Random Forest"
 
@@ -213,13 +227,6 @@ def get_aqi_color(aqi: float) -> str:
     return "#d55353"
 
 
-def get_climate_snapshot(station_name: str) -> dict[str, Any]:
-    return STATION_CLIMATE.get(
-        station_name,
-        {"temperature_c": None, "precipitation_chance": None},
-    )
-
-
 def get_available_stations() -> list[str]:
     station_daily = load_station_daily_aqi()
     return sorted(station_daily["display_station"].unique().tolist())
@@ -271,7 +278,6 @@ def get_station_latest_table() -> list[dict[str, Any]]:
 
 def get_monthly_pattern() -> list[dict[str, Any]]:
     station_daily = load_station_daily_aqi().copy()
-    station_daily["month_label"] = station_daily["date"].dt.strftime("%b")
 
     monthly = (
         station_daily.groupby(["date"], as_index=False)["aqi"].mean()
@@ -295,11 +301,23 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     station_series = get_station_series(station_name)
     latest_station = station_series.iloc[-1]
     history = station_series.tail(7)
-    climate = get_climate_snapshot(station_name)
     station_rows = get_station_latest_table()
     hotspot_markers = []
 
     latest_station_aqi = float(latest_station["aqi"])
+    station_coordinates = STATION_COORDINATES.get(station_name, {})
+    weather = get_station_weather_snapshot(
+        station_name,
+        station_coordinates.get("lat"),
+        station_coordinates.get("lng"),
+    )
+    current_weather = weather.get("current", {})
+    forecast_days = weather.get("forecast_days", [])
+    air_quality = weather.get("air_quality", {})
+    weather_error = weather.get("source_error")
+
+    live_us_aqi = air_quality.get("us_aqi")
+    today_forecast = forecast_days[0] if forecast_days else {}
 
     for row in station_rows:
         coordinates = STATION_COORDINATES.get(row["station"])
@@ -319,6 +337,9 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
             }
         )
 
+    live_category = classify_aqi(float(live_us_aqi)) if live_us_aqi is not None else city_payload["category"]
+    live_advice = advice_for_aqi(float(live_us_aqi)) if live_us_aqi is not None else city_payload["advice"]
+
     return {
         "stations": available_stations,
         "selected_station": station_name,
@@ -326,45 +347,41 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
             {
                 "title": "Temperature",
                 "value": (
-                    f"{climate['temperature_c']}°C"
-                    if climate["temperature_c"] is not None
-                    else "Connect source"
+                    f"{format_number(current_weather.get('temperature_c'))} C"
+                    if current_weather.get("temperature_c") is not None
+                    else "Unavailable"
                 ),
-                "note": (
-                    f"Add temperature_c for {station_name} in backend/api/station_climate.py"
-                    if climate["temperature_c"] is None
-                    else f"Current temperature for {station_name}"
-                ),
+                "note": weather_error if weather_error else f"Live temperature for {station_name}",
             },
             {
                 "title": "Precipitation Chance",
                 "value": (
-                    f"{climate['precipitation_chance']}%"
-                    if climate["precipitation_chance"] is not None
-                    else "Connect source"
+                    f"{format_int(today_forecast.get('precip_probability'))}%"
+                    if today_forecast.get("precip_probability") is not None
+                    else "Unavailable"
                 ),
-                "note": (
-                    f"Add precipitation_chance for {station_name} in backend/api/station_climate.py"
-                    if climate["precipitation_chance"] is None
-                    else f"Current precipitation outlook for {station_name}"
-                ),
+                "note": weather_error if weather_error else "Today's maximum rain probability",
             },
             {
                 "title": "AQI",
-                "value": int(round(latest_station_aqi)),
-                "note": f"{station_name} latest reading on {latest_station['date'].strftime('%d %b %Y')}",
+                "value": format_int(live_us_aqi) if live_us_aqi is not None else int(round(latest_station_aqi)),
+                "note": (
+                    "Live US AQI from Open-Meteo"
+                    if live_us_aqi is not None
+                    else f"Dataset AQI on {latest_station['date'].strftime('%d %b %Y')}"
+                ),
             },
             {
                 "title": "Health Advisory",
-                "value": city_payload["category"],
-                "note": city_payload["advice"],
+                "value": live_category,
+                "note": live_advice,
             },
         ],
         "secondary_metrics": [
             {
                 "title": "Delhi Prediction",
                 "value": city_payload["tomorrow"],
-                "note": f"{city_payload['model_name']} next-day forecast",
+                "note": f"{city_payload['model_name']} next-day AQI forecast",
             },
             {
                 "title": "Monitored Stations",
@@ -378,27 +395,60 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
             "prediction": city_payload["tomorrow"],
         },
         "advisory": {
-            "headline": f"Delhi next-day risk: {city_payload['category']}",
-            "tag": city_payload["advice"],
-            "summary": f"Prediction is built from your dataset through {city_payload['latest_date']} using {city_payload['model_name']}.",
+            "headline": f"{station_name}: {current_weather.get('condition', 'Current weather')}",
+            "tag": live_advice,
+            "summary": (
+                "Live weather and pollutant feed is from Open-Meteo. "
+                f"AQI trend model is trained on dataset data through {city_payload['latest_date']}."
+            ),
             "items": [
-                city_payload["advice"],
-                f"{station_name} latest AQI is {int(round(latest_station_aqi))}.",
-                "Sensitive groups should reduce prolonged outdoor exposure when AQI rises.",
-                "Use this page as the central dashboard before checking detailed AQI and temperature sections.",
+                (
+                    f"Feels like: {format_number(current_weather.get('feels_like_c'))} C."
+                    if current_weather.get("feels_like_c") is not None
+                    else "Feels-like temperature unavailable right now."
+                ),
+                (
+                    f"Humidity: {format_int(current_weather.get('humidity_percent'))}%."
+                    if current_weather.get("humidity_percent") is not None
+                    else "Humidity data unavailable right now."
+                ),
+                (
+                    f"Today's rain probability: {format_int(today_forecast.get('precip_probability'))}%."
+                    if today_forecast.get("precip_probability") is not None
+                    else "Rain probability unavailable right now."
+                ),
+                (
+                    f"Live US AQI: {format_int(live_us_aqi)}."
+                    if live_us_aqi is not None
+                    else f"Latest dataset AQI: {int(round(latest_station_aqi))}."
+                ),
             ],
         },
         "hero": {
             "eyebrow": "Delhi environmental intelligence platform",
-            "title": "Integrated AQI, climate risk and public-health signals for decision-ready monitoring",
+            "title": "Integrated AQI, weather and public-health signals for daily decisions",
             "description": (
-                "Track the selected Delhi station, review city-wide next-day prediction, "
-                "scan current hotspot conditions and move into deeper AQI, temperature and policy pages."
+                "Track live temperature, 5-day precipitation and pollutant signals for your selected station, "
+                "with model-based AQI trend insights in one dashboard."
             ),
         },
         "map": {
             "center": {"lat": 28.6139, "lng": 77.2090},
             "markers": hotspot_markers,
+        },
+        "live_weather": {
+            "station": station_name,
+            "error": weather_error,
+            "current": current_weather,
+            "air_quality": air_quality,
+            "forecast_days": forecast_days,
+            "fetched_at": weather.get("fetched_at"),
+        },
+        "temperature_chart": {
+            "labels": [item["day_label"] for item in forecast_days],
+            "max_temps": [item["max_temp"] for item in forecast_days],
+            "min_temps": [item["min_temp"] for item in forecast_days],
+            "precip_chance": [item["precip_probability"] for item in forecast_days],
         },
     }
 
@@ -422,25 +472,51 @@ def get_aqi_page_context() -> dict[str, Any]:
 def get_temperature_page_context(selected_station: str | None = None) -> dict[str, Any]:
     available_stations = get_available_stations()
     station_name = selected_station if selected_station in available_stations else available_stations[0]
-    station_series = get_station_series(station_name)
-    monthly_pattern = get_monthly_pattern()
-    latest_station = station_series.iloc[-1]
-    worst_month = max(monthly_pattern, key=lambda item: item["aqi"])
-    best_month = min(monthly_pattern, key=lambda item: item["aqi"])
+    station_coordinates = STATION_COORDINATES.get(station_name, {})
+    weather = get_station_weather_snapshot(
+        station_name,
+        station_coordinates.get("lat"),
+        station_coordinates.get("lng"),
+    )
+
+    current_weather = weather.get("current", {})
+    forecast_days = weather.get("forecast_days", [])
+    air_quality = weather.get("air_quality", {})
+
+    max_day = (
+        max(
+            forecast_days,
+            key=lambda item: item["max_temp"] if item.get("max_temp") is not None else float("-inf"),
+        )
+        if forecast_days
+        else None
+    )
+    wettest_day = (
+        max(
+            forecast_days,
+            key=lambda item: item["precip_probability"] if item.get("precip_probability") is not None else float("-inf"),
+        )
+        if forecast_days
+        else None
+    )
 
     return {
         "stations": available_stations,
         "selected_station": station_name,
-        "latest_station_aqi": int(round(float(latest_station["aqi"]))),
-        "latest_station_date": latest_station["date"].strftime("%d %b %Y"),
-        "worst_month": worst_month,
-        "best_month": best_month,
-        "monthly_pattern": monthly_pattern,
-        "note": (
-            "Your current project dataset contains AQI records, not direct temperature readings. "
-            "So this page keeps the temperature/heat-stress section structure and uses the environmental trend "
-            "layer from the same Delhi dataset until you plug in your temperature model."
-        ),
+        "current_weather": current_weather,
+        "air_quality": air_quality,
+        "forecast_days": forecast_days,
+        "max_day": max_day,
+        "wettest_day": wettest_day,
+        "weather_error": weather.get("source_error"),
+        "fetched_at": weather.get("fetched_at"),
+        "forecast_chart": {
+            "labels": [item["day_label"] for item in forecast_days],
+            "max_temps": [item["max_temp"] for item in forecast_days],
+            "min_temps": [item["min_temp"] for item in forecast_days],
+            "precip_chance": [item["precip_probability"] for item in forecast_days],
+        },
+        "note": "Temperature, precipitation and pollutant data are live from Open-Meteo APIs.",
     }
 
 

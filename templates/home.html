@@ -77,32 +77,95 @@
           <section class="panel">
             <div class="section-heading">
               <div>
-                <p class="section-kicker">Live Temperature</p>
-                <h2>Current temperature across key Delhi locations</h2>
+                <p class="section-kicker">Live Weather</p>
+                <h2>{{ selected_station }}: today + next 5 days</h2>
               </div>
             </div>
 
-            <section id="temperature-cards" class="grid grid-4">
-              <article class="card">
-                <div class="card-title">Anand Vihar</div>
-                <div class="card-value" id="temp-anand-vihar">Loading...</div>
-              </article>
+            {% if live_weather.error %}
+              <p class="highlight">{{ live_weather.error }}</p>
+            {% else %}
+              <section class="grid grid-4">
+                <article class="card">
+                  <div class="card-title">Current Temperature</div>
+                  <div class="card-value">
+                    {% if live_weather.current.temperature_c is not none %}{{ '%.1f'|format(live_weather.current.temperature_c) }} C{% else %}Unavailable{% endif %}
+                  </div>
+                  <p class="card-note">{{ live_weather.current.condition or "Unknown condition" }}</p>
+                </article>
+                <article class="card">
+                  <div class="card-title">Feels Like</div>
+                  <div class="card-value">
+                    {% if live_weather.current.feels_like_c is not none %}{{ '%.1f'|format(live_weather.current.feels_like_c) }} C{% else %}Unavailable{% endif %}
+                  </div>
+                  <p class="card-note">Humidity {% if live_weather.current.humidity_percent is not none %}{{ live_weather.current.humidity_percent|round|int }}%{% else %}Unavailable{% endif %}</p>
+                </article>
+                <article class="card">
+                  <div class="card-title">Wind Speed</div>
+                  <div class="card-value">
+                    {% if live_weather.current.wind_speed_kmh is not none %}{{ live_weather.current.wind_speed_kmh|round|int }} km/h{% else %}Unavailable{% endif %}
+                  </div>
+                  <p class="card-note">Live surface wind at station</p>
+                </article>
+                <article class="card">
+                  <div class="card-title">Current Rain</div>
+                  <div class="card-value">
+                    {% if live_weather.current.precip_mm is not none %}{{ '%.1f'|format(live_weather.current.precip_mm) }} mm{% else %}Unavailable{% endif %}
+                  </div>
+                  <p class="card-note">Realtime precipitation intensity</p>
+                </article>
+              </section>
 
-              <article class="card">
-                <div class="card-title">RK Puram</div>
-                <div class="card-value" id="temp-rk-puram">Loading...</div>
-              </article>
+              <section class="grid grid-4 forecast-grid">
+                {% for day in live_weather.forecast_days %}
+                  <article class="card forecast-card">
+                    <div class="card-title">{{ day.day_label }} - {{ day.date_label }}</div>
+                    <div class="card-value">
+                      {% if day.max_temp is not none %}{{ day.max_temp|round|int }} C{% else %}--{% endif %}
+                      /
+                      {% if day.min_temp is not none %}{{ day.min_temp|round|int }} C{% else %}--{% endif %}
+                    </div>
+                    <p class="card-note">{{ day.condition }}</p>
+                    <p class="card-note">Rain chance: {% if day.precip_probability is not none %}{{ day.precip_probability|round|int }}%{% else %}Unavailable{% endif %}</p>
+                  </article>
+                {% endfor %}
+              </section>
 
-              <article class="card">
-                <div class="card-title">Punjabi Bagh</div>
-                <div class="card-value" id="temp-punjabi-bagh">Loading...</div>
-              </article>
+              <section class="grid grid-4">
+                <article class="card">
+                  <div class="card-title">US AQI</div>
+                  <div class="card-value">
+                    {% if live_weather.air_quality.us_aqi is not none %}{{ live_weather.air_quality.us_aqi|round|int }}{% else %}Unavailable{% endif %}
+                  </div>
+                  <p class="card-note">Live AQI feed for selected station</p>
+                </article>
+                <article class="card">
+                  <div class="card-title">PM2.5</div>
+                  <div class="card-value">
+                    {% if live_weather.air_quality.pm2_5 is not none %}{{ '%.1f'|format(live_weather.air_quality.pm2_5) }}{% else %}Unavailable{% endif %}
+                  </div>
+                  <p class="card-note">ug/m3</p>
+                </article>
+                <article class="card">
+                  <div class="card-title">PM10</div>
+                  <div class="card-value">
+                    {% if live_weather.air_quality.pm10 is not none %}{{ '%.1f'|format(live_weather.air_quality.pm10) }}{% else %}Unavailable{% endif %}
+                  </div>
+                  <p class="card-note">ug/m3</p>
+                </article>
+                <article class="card">
+                  <div class="card-title">NO2</div>
+                  <div class="card-value">
+                    {% if live_weather.air_quality.nitrogen_dioxide is not none %}{{ '%.1f'|format(live_weather.air_quality.nitrogen_dioxide) }}{% else %}Unavailable{% endif %}
+                  </div>
+                  <p class="card-note">ug/m3</p>
+                </article>
+              </section>
 
-              <article class="card">
-                <div class="card-title">Mandir Marg</div>
-                <div class="card-value" id="temp-mandir-marg">Loading...</div>
-              </article>
-            </section>
+              {% if live_weather.fetched_at %}
+                <p class="card-note">Last updated: {{ live_weather.fetched_at }}</p>
+              {% endif %}
+            {% endif %}
           </section>
 
           <section class="panel chart-panel">
@@ -131,7 +194,7 @@
         <aside class="home-sidebar">
           <div class="advisory advisory-sticky panel">
             <div class="advisory-head">
-              <h2>Health Advisory</h2>
+              <h2>{{ advisory["headline"] }}</h2>
               <span class="chip chip-danger">{{ advisory["tag"] }}</span>
             </div>
 

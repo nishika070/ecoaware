@@ -1,12 +1,8 @@
 function renderHomeChart() {
-  if (!window.ecoAwareHomeChart) {
-    return;
-  }
+  if (!window.ecoAwareHomeChart || typeof Chart === "undefined") return;
 
   const canvas = document.getElementById("homeTrendChart");
-  if (!canvas) {
-    return;
-  }
+  if (!canvas) return;
 
   const data = window.ecoAwareHomeChart;
 
@@ -33,111 +29,102 @@ function renderHomeChart() {
   });
 }
 
-async function loadDelhiTemperatures() {
-  const locations = [
-    {
-      name: "Anand Vihar",
-      latitude: 28.65,
-      longitude: 77.31,
-      elementId: "temp-anand-vihar"
-    },
-    {
-      name: "RK Puram",
-      latitude: 28.57,
-      longitude: 77.18,
-      elementId: "temp-rk-puram"
-    },
-    {
-      name: "Punjabi Bagh",
-      latitude: 28.67,
-      longitude: 77.12,
-      elementId: "temp-punjabi-bagh"
-    },
-    {
-      name: "Mandir Marg",
-      latitude: 28.63,
-      longitude: 77.21,
-      elementId: "temp-mandir-marg"
-    }
-  ];
-
-  const latitudeList = locations.map((location) => location.latitude).join(",");
-  const longitudeList = locations.map((location) => location.longitude).join(",");
-
-  const apiUrl =
-    `https://api.open-meteo.com/v1/forecast?latitude=${latitudeList}` +
-    `&longitude=${longitudeList}` +
-    `&current=temperature_2m`;
-
-  try {
-    const response = await fetch(apiUrl);
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch temperature data");
-    }
-
-    const data = await response.json();
-    const results = Array.isArray(data) ? data : [data];
-
-    results.forEach((result, index) => {
-      const location = locations[index];
-      const temperature = result?.current?.temperature_2m;
-      const element = document.getElementById(location.elementId);
-
-      if (!element) {
-        return;
-      }
-
-      if (temperature !== undefined && temperature !== null) {
-        element.textContent = `${temperature}°C`;
-      } else {
-        element.textContent = "Not available";
-      }
-    });
-  } catch (error) {
-    console.error("Temperature API error:", error);
-
-    locations.forEach((location) => {
-      const element = document.getElementById(location.elementId);
-      if (element) {
-        element.textContent = "Error loading";
-      }
-    });
-  }
-}
-
 function renderTemperatureChart() {
-  if (!window.ecoAwareTemperatureChart) {
-    return;
-  }
+  if (!window.ecoAwareTemperatureChart || typeof Chart === "undefined") return;
 
   const canvas = document.getElementById("temperaturePatternChart");
-  if (!canvas) {
-    return;
-  }
+  if (!canvas) return;
 
   const data = window.ecoAwareTemperatureChart;
+  if (!Array.isArray(data.labels) || data.labels.length === 0) return;
 
   new Chart(canvas, {
-    type: "bar",
+    type: "line",
     data: {
-      labels: data.map((item) => item.month),
+      labels: data.labels,
       datasets: [
         {
-          label: "Average AQI",
-          data: data.map((item) => item.aqi),
-          backgroundColor: "rgba(31, 143, 95, 0.72)",
+          label: "Max Temp (C)",
+          data: data.max_temps,
+          borderColor: "#d55353",
+          backgroundColor: "rgba(213, 83, 83, 0.15)",
+          fill: false,
+          tension: 0.3,
+          pointRadius: 3,
+        },
+        {
+          label: "Min Temp (C)",
+          data: data.min_temps,
+          borderColor: "#1f8f5f",
+          backgroundColor: "rgba(31, 143, 95, 0.15)",
+          fill: false,
+          tension: 0.3,
+          pointRadius: 3,
+        },
+        {
+          label: "Rain Chance (%)",
+          data: data.precip_chance,
+          type: "bar",
+          backgroundColor: "rgba(44, 119, 175, 0.3)",
           borderRadius: 8,
+          yAxisID: "y1",
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: false,
+          title: { display: true, text: "Temperature (C)" },
+        },
+        y1: {
+          beginAtZero: true,
+          position: "right",
+          min: 0,
+          max: 100,
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: "Rain Chance (%)" },
+        },
+      },
     },
   });
 }
 
-renderHomeChart();
-loadDelhiTemperatures();
-renderTemperatureChart();
+function renderHomeMap() {
+  if (!window.ecoAwareHomeMap || typeof L === "undefined") return;
+
+  const mapContainer = document.getElementById("delhiHotspotMap");
+  if (!mapContainer) return;
+
+  const mapData = window.ecoAwareHomeMap;
+  const map = L.map(mapContainer).setView(
+    [mapData.center.lat, mapData.center.lng],
+    10
+  );
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+  }).addTo(map);
+
+  (mapData.markers || []).forEach((marker) => {
+    const circle = L.circleMarker([marker.lat, marker.lng], {
+      radius: 9,
+      color: marker.color || "#d55353",
+      fillColor: marker.color || "#d55353",
+      fillOpacity: 0.7,
+      weight: 1.5,
+    }).addTo(map);
+
+    circle.bindPopup(
+      `<strong>${marker.name}</strong><br/>AQI: ${marker.aqi}<br/>Status: ${marker.status}<br/>${marker.latest_date}`
+    );
+  });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  renderHomeChart();
+  renderTemperatureChart();
+  renderHomeMap();
+});

@@ -1,9 +1,3 @@
-"""
-Approximate station coordinates for Delhi hotspot visualization.
-
-You can refine these later if you have exact station coordinates.
-"""
-
 STATION_COORDINATES = {
     "Anand Vihar": {"lat": 28.6469, "lng": 77.3161},
     "Ashok Vihar": {"lat": 28.6954, "lng": 77.1817},
@@ -26,3 +20,5 @@ STATION_COORDINATES = {
     "Vivek Vihar": {"lat": 28.6721, "lng": 77.3177},
     "Wazirpur": {"lat": 28.6998, "lng": 77.1654},
 }
+
+DEFAULT_STATION = "Anand Vihar"

@@ -2,8 +2,6 @@ import pandas as pd
 import os
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
-
-
 # LOAD + RESHAPE DATA
 def load_and_merge_data(folder_path):
     dataframes = []
@@ -29,14 +27,10 @@ def load_and_merge_data(folder_path):
                 continue
 
     return pd.concat(dataframes, ignore_index=True)
-
-
 # CLEAN DATA
 def clean_data(df):
     df = df.dropna(subset=["AQI"])
     return df
-
-
 # PROCESS DATE + MONTH
 def process_date(df):
     df["Date"] = pd.to_numeric(df["Date"], errors='coerce')
@@ -45,15 +39,11 @@ def process_date(df):
     df["Month"] = pd.to_datetime(df["Month"], format='%B').dt.month
 
     return df
-
-
 # ENCODE LOCATION
 def encode_data(df):
     le = LabelEncoder()
     df["location"] = le.fit_transform(df["location"].astype(str))
     return df
-
-
 # OUTLIER HANDLING
 def handle_outliers(df):
     Q1 = df["AQI"].quantile(0.25)
@@ -66,14 +56,10 @@ def handle_outliers(df):
     df["AQI"] = df["AQI"].clip(lower, upper)
 
     return df
-
-
 # SCALE DATA
 def scale_data(X):
     scaler = MinMaxScaler()
     return scaler.fit_transform(X)
-
-
 # SPLIT DATA
 def split_data(df):
     X = df[["Date", "Month", "location"]]
@@ -82,16 +68,12 @@ def split_data(df):
     X = scale_data(X)
 
     return train_test_split(X, y, test_size=0.2, random_state=42)
-
-
 # SAVE DATA
 def save_data(X_train, X_test, y_train, y_test, output_path):
     pd.DataFrame(X_train).to_csv(os.path.join(output_path, "X_train.csv"), index=False)
     pd.DataFrame(X_test).to_csv(os.path.join(output_path, "X_test.csv"), index=False)
     y_train.to_csv(os.path.join(output_path, "y_train.csv"), index=False)
     y_test.to_csv(os.path.join(output_path, "y_test.csv"), index=False)
-
-
 # MAIN
 def run_preprocessing():
     folder_path = "../datasets/Data_training"
@@ -106,7 +88,5 @@ def run_preprocessing():
     X_train, X_test, y_train, y_test = split_data(df)
 
     save_data(X_train, X_test, y_train, y_test, output_path)
-
-
 if __name__ == "__main__":
     run_preprocessing()

@@ -382,6 +382,18 @@ a {
   line-height: 1.45;
 }
 
+.forecast-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.forecast-card {
+  background: linear-gradient(165deg, #ffffff 0%, #f4fbf6 100%);
+  border: 1px solid #d9ebe1;
+}
+
 .chart-panel h2,
 .panel h2 {
   margin-bottom: 12px;

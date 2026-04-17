@@ -4,11 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}EcoAware Delhi{% endblock %}</title>
+
+    <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}" />
+
     {% block page_head %}{% endblock %}
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
+
   <body>
+    <!-- ================= NAVBAR ================= -->
     <nav class="navbar">
       <div class="container navbar-inner">
         <a href="{{ url_for('home') }}" class="logo" aria-label="EcoAware Home">
@@ -26,9 +33,18 @@
       </div>
     </nav>
 
+    <!-- ================= PAGE CONTENT ================= -->
     {% block content %}{% endblock %}
 
+    <!-- ================= DATA FROM FLASK ================= -->
+    <script>
+      window.stationCoordinates = {{ station_coordinates | default({}, true) | tojson }};
+    </script>
+
+    <!-- ================= MAIN JS ================= -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+    <!-- ================= EXTRA PAGE JS ================= -->
     {% block page_scripts %}{% endblock %}
   </body>
 </html>
