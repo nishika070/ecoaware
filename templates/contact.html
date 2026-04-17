@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Contact | EcoAware Delhi{% endblock %}
+
+{% block content %}
+  <main class="page-shell">
+    <div class="container contact-page">
+      <section class="page-heading">
+        <h1>Contact & Collaboration</h1>
+        <p>
+          For datasets, integrations, dashboards, predictions, and public-health collaboration, connect with the EcoAware team.
+        </p>
+      </section>
+
+      <section class="panel contact-grid">
+        {% for card in contact_cards %}
+          <div>
+            <h2>{{ card.title }}</h2>
+            <p>{{ card.detail }}</p>
+          </div>
+        {% endfor %}
+      </section>
+    </div>
+  </main>
+{% endblock %}

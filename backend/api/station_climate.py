@@ -1,0 +1,29 @@
+"""
+Fill this file with station-wise climate values when you are ready.
+
+These values are intentionally left as None so the app does not show dummy data.
+Update the matching station entry with real values from your source/API/model.
+"""
+
+STATION_CLIMATE = {
+    "Anand Vihar": {"temperature_c": None, "precipitation_chance": None},
+    "Ashok Vihar": {"temperature_c": None, "precipitation_chance": None},
+    "Bawana": {"temperature_c": None, "precipitation_chance": None},
+    "CRRI Mathura Road": {"temperature_c": None, "precipitation_chance": None},
+    "DTU": {"temperature_c": None, "precipitation_chance": None},
+    "IGI Airport T3": {"temperature_c": None, "precipitation_chance": None},
+    "ITO": {"temperature_c": None, "precipitation_chance": None},
+    "Jahangirpuri": {"temperature_c": None, "precipitation_chance": None},
+    "Jawaharlal Nehru Stadium": {"temperature_c": None, "precipitation_chance": None},
+    "Lodhi Road": {"temperature_c": None, "precipitation_chance": None},
+    "Narela": {"temperature_c": None, "precipitation_chance": None},
+    "North Campus DU": {"temperature_c": None, "precipitation_chance": None},
+    "NSIT Dwarka": {"temperature_c": None, "precipitation_chance": None},
+    "Okhla Phase-2": {"temperature_c": None, "precipitation_chance": None},
+    "Patparganj": {"temperature_c": None, "precipitation_chance": None},
+    "Punjabi Bagh": {"temperature_c": None, "precipitation_chance": None},
+    "Rohini": {"temperature_c": None, "precipitation_chance": None},
+    "Sirifort": {"temperature_c": None, "precipitation_chance": None},
+    "Vivek Vihar": {"temperature_c": None, "precipitation_chance": None},
+    "Wazirpur": {"temperature_c": None, "precipitation_chance": None},
+}

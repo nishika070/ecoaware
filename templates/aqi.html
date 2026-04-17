@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}AQI | EcoAware Delhi{% endblock %}
+
+{% block content %}
+  <main class="page-shell">
+    <div class="container aqi-page">
+      <section class="page-heading">
+        <h1>Delhi AQI Intelligence</h1>
+        <p>
+          Station-wise AQI view from your dataset, with latest status and intervention guidance.
+        </p>
+      </section>
+
+      <section class="panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Station</th>
+              <th>Latest AQI</th>
+              <th>Status</th>
+              <th>Latest Date</th>
+              <th>Advice</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in station_rows %}
+              <tr>
+                <td>{{ row.station }}</td>
+                <td>{{ row.aqi }}</td>
+                <td>{{ row.status }}</td>
+                <td>{{ row.latest_date }}</td>
+                <td>{{ row.advice }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="grid grid-4">
+        {% for row in top_hotspots %}
+          <article class="panel hotspot-card">
+            <h2>{{ row.station }}</h2>
+            <p class="hotspot-value">{{ row.aqi }}</p>
+            <p>{{ row.status }}</p>
+            <p class="muted-text">{{ row.latest_date }}</p>
+          </article>
+        {% endfor %}
+      </section>
+
+      <section class="panel alert-strip">
+        <h2>Policy trigger suggestion</h2>
+        <p>{{ policy_note }}</p>
+      </section>
+    </div>
+  </main>
+{% endblock %}

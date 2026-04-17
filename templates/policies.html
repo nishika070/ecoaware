@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Policy Insights | EcoAware Delhi{% endblock %}
+
+{% block content %}
+  <main class="page-shell">
+    <div class="container policy-page">
+      <section class="page-heading">
+        <h1>Government & Policy Insights</h1>
+        <p>
+          Data-backed intervention framework for district administration, pollution control, hotspot handling,
+          and suggestion-oriented planning.
+        </p>
+      </section>
+
+      <section class="grid grid-2">
+        {% for item in policy_items %}
+          <article class="panel policy-card">
+            <h2>{{ item.title }}</h2>
+            <p>{{ item.detail }}</p>
+          </article>
+        {% endfor %}
+      </section>
+
+      <section class="grid grid-3">
+        {% for hotspot in hotspot_cards %}
+          <article class="panel hotspot-card">
+            <h2>{{ hotspot.name }}</h2>
+            <p class="hotspot-value">{{ hotspot.aqi }}</p>
+            <p>{{ hotspot.status }}</p>
+            <p class="muted-text">{{ hotspot.date }}</p>
+          </article>
+        {% endfor %}
+      </section>
+    </div>
+  </main>
+{% endblock %}
