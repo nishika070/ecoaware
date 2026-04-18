@@ -207,24 +207,88 @@ def classify_aqi(aqi: float) -> str:
     if aqi <= 50:
         return "Good"
     if aqi <= 100:
+        return "Satisfactory"
+    if aqi <= 200:
         return "Moderate"
-    return "Poor"
+    if aqi <= 300:
+        return "Poor"
+    if aqi <= 400:
+        return "Very Poor"
+    return "Severe"
 
 
 def advice_for_aqi(aqi: float) -> str:
     if aqi <= 50:
-        return "Safe to go outside"
+        return "Outdoor activity is generally safe."
     if aqi <= 100:
-        return "Limit outdoor activity"
-    return "Avoid going out"
+        return "Sensitive groups should reduce prolonged exertion."
+    if aqi <= 200:
+        return "Limit prolonged outdoor activity and keep masks ready."
+    if aqi <= 300:
+        return "Avoid intense outdoor activity, especially for children and elderly."
+    if aqi <= 400:
+        return "Stay indoors when possible; use air filtration if available."
+    return "Avoid outdoor exposure; follow high-risk emergency precautions."
 
 
 def get_aqi_color(aqi: float) -> str:
     if aqi <= 50:
         return "#2e9f57"
     if aqi <= 100:
+        return "#8abf2f"
+    if aqi <= 200:
         return "#d2a819"
+    if aqi <= 300:
+        return "#e67e22"
+    if aqi <= 400:
+        return "#d55353"
+    return "#7a0019"
+
+
+def get_status_class(aqi: float) -> str:
+    if aqi <= 50:
+        return "status-good"
+    if aqi <= 100:
+        return "status-satisfactory"
+    if aqi <= 200:
+        return "status-moderate"
+    if aqi <= 300:
+        return "status-poor"
+    if aqi <= 400:
+        return "status-very-poor"
+    return "status-severe"
+
+
+def get_relative_spread_color(aqi: float, min_aqi: float, max_aqi: float) -> str:
+    if max_aqi <= min_aqi:
+        return "#d2a819"
+
+    spread_ratio = (aqi - min_aqi) / (max_aqi - min_aqi)
+    if spread_ratio <= 0.2:
+        return "#2e9f57"
+    if spread_ratio <= 0.4:
+        return "#8abf2f"
+    if spread_ratio <= 0.6:
+        return "#d2a819"
+    if spread_ratio <= 0.8:
+        return "#e67e22"
     return "#d55353"
+
+
+def get_relative_spread_label(aqi: float, min_aqi: float, max_aqi: float) -> str:
+    if max_aqi <= min_aqi:
+        return "Uniform spread"
+
+    spread_ratio = (aqi - min_aqi) / (max_aqi - min_aqi)
+    if spread_ratio <= 0.2:
+        return "Lower pressure in city spread"
+    if spread_ratio <= 0.4:
+        return "Mild pressure in city spread"
+    if spread_ratio <= 0.6:
+        return "Medium pressure in city spread"
+    if spread_ratio <= 0.8:
+        return "High pressure in city spread"
+    return "Very high pressure in city spread"
 
 
 def get_available_stations() -> list[str]:
@@ -263,13 +327,16 @@ def get_station_latest_table() -> list[dict[str, Any]]:
     results = []
     for _, row in latest_rows.iterrows():
         aqi_value = float(row["aqi"])
+        status = classify_aqi(aqi_value)
         results.append(
             {
                 "station": row["display_station"],
                 "aqi": int(round(aqi_value)),
-                "status": classify_aqi(aqi_value),
+                "status": status,
                 "advice": advice_for_aqi(aqi_value),
                 "latest_date": row["date"].strftime("%d %b %Y"),
+                "color": get_aqi_color(aqi_value),
+                "status_class": get_status_class(aqi_value),
             }
         )
 
@@ -318,6 +385,8 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
 
     live_us_aqi = air_quality.get("us_aqi")
     today_forecast = forecast_days[0] if forecast_days else {}
+    map_min_aqi = min((row["aqi"] for row in station_rows), default=0)
+    map_max_aqi = max((row["aqi"] for row in station_rows), default=0)
 
     for row in station_rows:
         coordinates = STATION_COORDINATES.get(row["station"])
@@ -333,7 +402,8 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
                 "latest_date": row["latest_date"],
                 "lat": coordinates["lat"],
                 "lng": coordinates["lng"],
-                "color": get_aqi_color(row["aqi"]),
+                "color": get_relative_spread_color(float(row["aqi"]), float(map_min_aqi), float(map_max_aqi)),
+                "relative_label": get_relative_spread_label(float(row["aqi"]), float(map_min_aqi), float(map_max_aqi)),
             }
         )
 
@@ -435,6 +505,13 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
         "map": {
             "center": {"lat": 28.6139, "lng": 77.2090},
             "markers": hotspot_markers,
+            "legend": [
+                {"label": "Lower city spread", "color": "#2e9f57"},
+                {"label": "Mild city spread", "color": "#8abf2f"},
+                {"label": "Medium city spread", "color": "#d2a819"},
+                {"label": "High city spread", "color": "#e67e22"},
+                {"label": "Very high city spread", "color": "#d55353"},
+            ],
         },
         "live_weather": {
             "station": station_name,
@@ -456,6 +533,13 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
 def get_aqi_page_context() -> dict[str, Any]:
     station_rows = get_station_latest_table()
     top_hotspots = station_rows[:4]
+    prediction = build_prediction_payload()
+    avg_aqi = round(sum(row["aqi"] for row in station_rows) / len(station_rows), 1) if station_rows else 0
+    cleanest_station = station_rows[-1] if station_rows else None
+
+    status_counts: dict[str, int] = {}
+    for row in station_rows:
+        status_counts[row["status"]] = status_counts.get(row["status"], 0) + 1
 
     return {
         "station_rows": station_rows,
@@ -466,6 +550,40 @@ def get_aqi_page_context() -> dict[str, Any]:
             else "Latest AQI records are available from your Delhi dataset."
         ),
         "top_hotspots": top_hotspots,
+        "aqi_summary_cards": [
+            {
+                "title": "Citywide Average AQI",
+                "value": avg_aqi,
+                "note": "Average across latest station observations",
+            },
+            {
+                "title": "Tomorrow AQI Prediction",
+                "value": prediction["tomorrow"],
+                "note": f"{prediction['model_name']} forecast model",
+            },
+            {
+                "title": "Predicted Risk",
+                "value": prediction["category"],
+                "note": prediction["advice"],
+            },
+            {
+                "title": "Cleanest Station",
+                "value": cleanest_station["station"] if cleanest_station else "Unavailable",
+                "note": f"AQI {cleanest_station['aqi']}" if cleanest_station else "No data",
+            },
+        ],
+        "status_distribution": [
+            {"status": status, "count": count}
+            for status, count in status_counts.items()
+        ],
+        "aqi_legend": [
+            {"range": "0-50", "label": "Good", "color": "#2e9f57"},
+            {"range": "51-100", "label": "Satisfactory", "color": "#8abf2f"},
+            {"range": "101-200", "label": "Moderate", "color": "#d2a819"},
+            {"range": "201-300", "label": "Poor", "color": "#e67e22"},
+            {"range": "301-400", "label": "Very Poor", "color": "#d55353"},
+            {"range": "401+", "label": "Severe", "color": "#7a0019"},
+        ],
     }
 
 
@@ -525,6 +643,7 @@ def get_policies_page_context() -> dict[str, Any]:
     monthly_pattern = get_monthly_pattern()
     worst_month = max(monthly_pattern, key=lambda item: item["aqi"])
     top_three = station_rows[:3]
+    prediction = build_prediction_payload()
 
     policy_items = [
         {
@@ -540,8 +659,11 @@ def get_policies_page_context() -> dict[str, Any]:
             "detail": f"{worst_month['month']} has the highest mean AQI in the dataset, so preparedness campaigns should intensify before that cycle.",
         },
         {
-            "title": "Health suggestion engine",
-            "detail": f"Current top-zone advice: {top_three[0]['advice']}. Use this for citizen alerts and school/outdoor planning.",
+            "title": "ML health suggestion engine",
+            "detail": (
+                f"{prediction['model_name']} predicts next-day Delhi AQI near {prediction['tomorrow']} "
+                f"({prediction['category']}). Suggested public guidance: {prediction['advice']}"
+            ),
         },
     ]
 
@@ -551,6 +673,7 @@ def get_policies_page_context() -> dict[str, Any]:
             "aqi": row["aqi"],
             "status": row["status"],
             "date": row["latest_date"],
+            "status_class": row["status_class"],
         }
         for row in top_three
     ]
@@ -558,25 +681,43 @@ def get_policies_page_context() -> dict[str, Any]:
     return {
         "policy_items": policy_items,
         "hotspot_cards": hotspot_cards,
+        "model_summary": {
+            "model_name": prediction["model_name"],
+            "tomorrow": prediction["tomorrow"],
+            "category": prediction["category"],
+            "advice": prediction["advice"],
+            "latest_date": prediction["latest_date"],
+        },
     }
 
 
 def get_contact_page_context() -> dict[str, Any]:
+    prediction = build_prediction_payload()
     return {
         "contact_cards": [
             {
-                "title": "Email",
-                "detail": "ecoaware.delhi@project.org",
+                "title": "Project Email",
+                "detail": "ecoaware.delhi@project.org (replace with your official college/team mail)",
             },
             {
-                "title": "Project Scope",
-                "detail": "AQI awareness, environmental prediction, and public-health support for Delhi.",
+                "title": "Mentor Showcase Focus",
+                "detail": "Live AQI + weather intelligence, station map spread, and ML-backed policy suggestions for Delhi.",
             },
             {
-                "title": "Collaboration",
-                "detail": "Open for AQI models, civic dashboards, maps, and health recommendation integration.",
+                "title": "Model In Use",
+                "detail": f"{prediction['model_name']} (fallback: Decision Tree) for next-day AQI prediction.",
             },
-        ]
+            {
+                "title": "Current Prediction",
+                "detail": f"Tomorrow AQI forecast: {prediction['tomorrow']} ({prediction['category']})",
+            },
+        ],
+        "collaboration_points": [
+            "AQI model improvement and retraining with latest CPCB records",
+            "Hospital and school level health-alert automation",
+            "Ward-level intervention planning for dust and traffic control",
+            "Dashboard extensions for heat stress and rainfall risk response",
+        ],
     }
 
 

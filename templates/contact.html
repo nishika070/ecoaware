@@ -8,17 +8,26 @@
       <section class="page-heading">
         <h1>Contact & Collaboration</h1>
         <p>
-          For datasets, integrations, dashboards, predictions, and public-health collaboration, connect with the EcoAware team.
+          For datasets, civic integrations, and public-health coordination, use this page as your showcase collaboration brief.
         </p>
       </section>
 
-      <section class="panel contact-grid">
+      <section class="grid grid-2">
         {% for card in contact_cards %}
-          <div>
+          <article class="panel contact-card">
             <h2>{{ card.title }}</h2>
             <p>{{ card.detail }}</p>
-          </div>
+          </article>
         {% endfor %}
+      </section>
+
+      <section class="panel">
+        <h2>Open collaboration tracks</h2>
+        <ul class="contact-list">
+          {% for point in collaboration_points %}
+            <li>{{ point }}</li>
+          {% endfor %}
+        </ul>
       </section>
     </div>
   </main>

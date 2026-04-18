@@ -37,8 +37,8 @@
     {% block content %}{% endblock %}
 
     <!-- ================= DATA FROM FLASK ================= -->
-    <script>
-      window.stationCoordinates = {{ station_coordinates | default({}, true) | tojson }};
+    <script id="station-coordinates-data" type="application/json">
+      {{ station_coordinates | default({}, true) | tojson }}
     </script>
 
     <!-- ================= MAIN JS ================= -->

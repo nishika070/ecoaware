@@ -187,6 +187,14 @@
                 <h2>Current AQI spread across monitored stations</h2>
               </div>
             </div>
+            <div class="map-legend">
+              {% for item in map.legend %}
+                <div class="legend-item">
+                  <span class="legend-dot" style="background-color: {{ item.color }};"></span>
+                  <span>{{ item.label }}</span>
+                </div>
+              {% endfor %}
+            </div>
             <div id="delhiHotspotMap" class="hotspot-map"></div>
           </section>
         </div>
@@ -219,17 +227,17 @@
           </div>
 
           <div>
-            <h2>Contact</h2>
-            <p>Contact Number: Add your number here</p>
-            <p>Email: Add your email here</p>
+            <h2>Health Suggestion</h2>
+            <p>Live advisory: {{ advisory["tag"] }}</p>
+            <p>Model-backed next day prediction: {{ secondary_metrics[0].value }}</p>
+            <p>Use AQI + rainfall + wind view before planning outdoor exposure.</p>
           </div>
 
           <div>
-            <h2>Collaborators</h2>
-            <p>Aradhana Singh</p>
-            <p>Nishika</p>
-            <p>Navya Jain</p>
-            <p>Palak Harbola</p>
+            <h2>Project Team</h2>
+            <p>EcoAware Delhi Student Research Team</p>
+            <p>Project mail: ecoaware.delhi@project.org</p>
+            <p>Update with your final mentor-approved contact details.</p>
           </div>
         </div>
       </footer>
@@ -243,8 +251,6 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
-  <script>
-    window.ecoAwareHomeChart = {{ chart | tojson }};
-    window.ecoAwareHomeMap = {{ map | tojson }};
-  </script>
+  <script id="home-chart-data" type="application/json">{{ chart | tojson }}</script>
+  <script id="home-map-data" type="application/json">{{ map | tojson }}</script>
 {% endblock %}

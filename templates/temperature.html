@@ -105,7 +105,5 @@
 {% endblock %}
 
 {% block page_scripts %}
-  <script>
-    window.ecoAwareTemperatureChart = {{ forecast_chart | tojson }};
-  </script>
+  <script id="temperature-chart-data" type="application/json">{{ forecast_chart | tojson }}</script>
 {% endblock %}
