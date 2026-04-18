@@ -50,3 +50,32 @@ script for merging --> merge_csvs.py
 
 DATA PREPROCESSING
 
+
+DAY 3
+Preprocessed data obtained using only AQI data
+Now, weather also impacts AQI, so we have data from 2000 to April 2026. 
+Preprocessing to be redone
+
+--source NASA POWER DAV--										
+NASA/POWER Source Native Resolution Daily Data 										
+Dates (month/day/year): 01/01/2000 through 04/15/2026
+Location: latitude  34.1623   longitude 90.6141  -> Delhi
+
+The value for missing source data that cannot be computed or
+is outside of the sources availability range: -999 -> outlier actually a NaN
+
+parameter(s): 	
+T2M             MERRA-2 Temperature at 2 Meters (C)
+T2M_MAX         MERRA-2 Temperature at 2 Meters Maximum (C)
+T2M_MIN         MERRA-2 Temperature at 2 Meters Minimum (C)
+RH2M            MERRA-2 Relative Humidity at 2 Meters (%)
+PRECTOTCORR     MERRA-2 Precipitation Corrected (mm/day)
+WS10M           MERRA-2 Wind Speed at 10 Meters (m/s)
+WS10M_MAX       MERRA-2 Wind Speed at 10 Meters Maximum (m/s)
+WS10M_MIN       MERRA-2 Wind Speed at 10 Meters Minimum (m/s)
+PS              MERRA-2 Surface Pressure (kPa)
+
+Columns in order:
+YEAR, DOY, T2M, T2M_MAX, T2M_MIN, RH2M, PRECTOTCORR, 
+WS10M, WS10M_MAX, WS10M_MIN, PS
+
