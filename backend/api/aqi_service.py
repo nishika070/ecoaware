@@ -379,6 +379,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
         station_coordinates.get("lng"),
     )
     current_weather = weather.get("current", {})
+    hourly_preview = weather.get("hourly_preview", [])
     forecast_days = weather.get("forecast_days", [])
     air_quality = weather.get("air_quality", {})
     weather_error = weather.get("source_error")
@@ -409,6 +410,11 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
 
     live_category = classify_aqi(float(live_us_aqi)) if live_us_aqi is not None else city_payload["category"]
     live_advice = advice_for_aqi(float(live_us_aqi)) if live_us_aqi is not None else city_payload["advice"]
+    live_aqi_numeric = float(live_us_aqi) if live_us_aqi is not None else latest_station_aqi
+    today_max_temp = today_forecast.get("max_temp")
+    today_min_temp = today_forecast.get("min_temp")
+    visibility_m = current_weather.get("visibility_m")
+    visibility_km = round(float(visibility_m) / 1000, 1) if visibility_m is not None else None
 
     return {
         "stations": available_stations,
@@ -517,9 +523,32 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
             "station": station_name,
             "error": weather_error,
             "current": current_weather,
+            "hourly_preview": hourly_preview,
             "air_quality": air_quality,
             "forecast_days": forecast_days,
             "fetched_at": weather.get("fetched_at"),
+        },
+        "hourly_preview": hourly_preview,
+        "home_weather": {
+            "temperature_c": current_weather.get("temperature_c"),
+            "feels_like_c": current_weather.get("feels_like_c"),
+            "condition": current_weather.get("condition"),
+            "temp_max_today": today_max_temp,
+            "temp_min_today": today_min_temp,
+            "rain_probability": today_forecast.get("precip_probability"),
+            "wind_speed_kmh": current_weather.get("wind_speed_kmh"),
+            "wind_direction_deg": current_weather.get("wind_direction_deg"),
+            "wind_gust_kmh": current_weather.get("wind_gust_kmh"),
+            "humidity_percent": current_weather.get("humidity_percent"),
+            "precip_mm": current_weather.get("precip_mm"),
+            "cloud_cover_percent": current_weather.get("cloud_cover_percent"),
+            "visibility_km": visibility_km,
+            "pressure_hpa": current_weather.get("surface_pressure_hpa"),
+            "uv_index": today_forecast.get("uv_index"),
+            "aqi": int(round(live_aqi_numeric)),
+            "aqi_label": live_category,
+            "aqi_class": get_status_class(live_aqi_numeric),
+            "updated_at": weather.get("fetched_at"),
         },
         "temperature_chart": {
             "labels": [item["day_label"] for item in forecast_days],

@@ -15,23 +15,28 @@
   </head>
 
   <body>
-    <!-- ================= NAVBAR ================= -->
-    <nav class="navbar">
-      <div class="container navbar-inner">
-        <a href="{{ url_for('home') }}" class="logo" aria-label="EcoAware Home">
-          <span class="logo-badge">EA</span>
-          EcoAware Delhi
-        </a>
+    <header class="site-header">
+      <div class="container topbar">
+        <a href="{{ url_for('home') }}" class="brand" aria-label="EcoAware Home">AQI</a>
 
-        <div class="nav-links">
-          <a href="{{ url_for('home') }}" class="{% if active_page == 'home' %}active{% endif %}">Home</a>
+        <nav class="top-links">
           <a href="{{ url_for('aqi_page') }}" class="{% if active_page == 'aqi' %}active{% endif %}">AQI</a>
-          <a href="{{ url_for('temperature_page') }}" class="{% if active_page == 'temperature' %}active{% endif %}">Temperature</a>
-          <a href="{{ url_for('policies_page') }}" class="{% if active_page == 'policies' %}active{% endif %}">Policy Insights</a>
+          <a href="{{ url_for('policies_page') }}" class="{% if active_page == 'policies' %}active{% endif %}">Policy</a>
+          <a href="{{ url_for('home') }}" class="{% if active_page == 'home' %}active{% endif %}">Insight</a>
           <a href="{{ url_for('contact_page') }}" class="{% if active_page == 'contact' %}active{% endif %}">Contact</a>
+        </nav>
+
+        <div class="search-wrap">
+          <input type="text" placeholder="Search any location, city, state or country" aria-label="Search location" />
+        </div>
+
+        <div class="top-controls">
+          <span>AQI-US</span>
+          <span>C</span>
+          <button type="button">Login</button>
         </div>
       </div>
-    </nav>
+    </header>
 
     <!-- ================= PAGE CONTENT ================= -->
     {% block content %}{% endblock %}

@@ -62,6 +62,32 @@ def _find_latest_value(values: list[Any]) -> Any:
     return None
 
 
+def _build_hourly_preview(hourly_payload: dict[str, Any], current_time: str | None) -> list[dict[str, Any]]:
+    times = hourly_payload.get("time", [])
+    if not times:
+        return []
+
+    start_index = 0
+    if current_time and current_time in times:
+        start_index = times.index(current_time)
+
+    preview: list[dict[str, Any]] = []
+    for index in range(start_index, min(start_index + 8, len(times))):
+        stamp = times[index]
+        label = stamp[11:16] if len(stamp) >= 16 else stamp
+        preview.append(
+            {
+                "time": stamp,
+                "label": label,
+                "temp_c": (hourly_payload.get("temperature_2m") or [None])[index],
+                "precip_probability": (hourly_payload.get("precipitation_probability") or [None])[index],
+                "condition": _weather_label((hourly_payload.get("weather_code") or [None])[index]),
+            }
+        )
+
+    return preview
+
+
 def get_station_weather_snapshot(
     station_name: str,
     lat: float | None,
@@ -98,6 +124,16 @@ def get_station_weather_snapshot(
                     "precipitation",
                     "weather_code",
                     "wind_speed_10m",
+                    "wind_direction_10m",
+                    "wind_gusts_10m",
+                    "surface_pressure",
+                    "cloud_cover",
+                    "visibility",
+                ],
+                "hourly": [
+                    "temperature_2m",
+                    "precipitation_probability",
+                    "weather_code",
                 ],
                 "daily": [
                     "weather_code",
@@ -138,6 +174,7 @@ def get_station_weather_snapshot(
         }
 
     current = forecast_payload.get("current", {})
+    hourly_weather = forecast_payload.get("hourly", {})
     daily = forecast_payload.get("daily", {})
     hourly = air_payload.get("hourly", {})
 
@@ -177,9 +214,15 @@ def get_station_weather_snapshot(
             "feels_like_c": current.get("apparent_temperature"),
             "humidity_percent": current.get("relative_humidity_2m"),
             "wind_speed_kmh": current.get("wind_speed_10m"),
+            "wind_direction_deg": current.get("wind_direction_10m"),
+            "wind_gust_kmh": current.get("wind_gusts_10m"),
+            "surface_pressure_hpa": current.get("surface_pressure"),
+            "cloud_cover_percent": current.get("cloud_cover"),
+            "visibility_m": current.get("visibility"),
             "precip_mm": current.get("precipitation"),
             "condition": _weather_label(current.get("weather_code")),
         },
+        "hourly_preview": _build_hourly_preview(hourly_weather, current.get("time")),
         "forecast_days": forecast_days,
         "air_quality": air_quality,
         "fetched_at": now_utc.strftime("%Y-%m-%d %H:%M UTC"),
