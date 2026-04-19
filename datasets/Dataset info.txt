@@ -49,7 +49,11 @@ AQI_merged_all.csv --> merged csv of all
 script for merging --> merge_csvs.py
 
 DATA PREPROCESSING
+0->date
+1->month
+2->Location      in X
 
+Y contains corresponding AQI
 
 DAY 3
 Preprocessed data obtained using only AQI data
@@ -79,3 +83,5 @@ Columns in order:
 YEAR, DOY, T2M, T2M_MAX, T2M_MIN, RH2M, PRECTOTCORR, 
 WS10M, WS10M_MAX, WS10M_MIN, PS
 
+
+PREPROCESSING 2
