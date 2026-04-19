@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Home | EcoAware Delhi{% endblock %}
+
+{% block page_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+{% endblock %}
+
+{% block content %}
+  <main class="weather-home">
+    <div class="weather-bg-layer">
+      <video muted playsinline preload="metadata">
+        <source src="{{ url_for('static', filename='bg.mp4') }}" type="video/mp4" />
+      </video>
+    </div>
+    <div class="weather-bg-overlay"></div>
+
+    <div class="container weather-content">
+      <div class="breadcrumb-row">Weather &gt; India &gt; Delhi &gt; {{ selected_station }}</div>
+
+      <div class="title-row">
+        <div>
+          <h1>{{ selected_station }} Weather Conditions</h1>
+          <p>Current temperature level with AQI and weather parameter dashboard.</p>
+        </div>
+        <form method="get" action="{{ url_for('home') }}" class="station-form">
+          <label for="station">Station</label>
+          <select id="station" name="station" onchange="this.form.submit()">
+            {% for station in stations %}
+              <option value="{{ station }}" {% if station == selected_station %}selected{% endif %}>{{ station }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+
+      <section class="hero-row">
+        <article class="glass-panel hero-panel">
+          <div class="hero-temp-line">
+            <div class="hero-temp">{{ home_weather.temperature_c|round|int if home_weather.temperature_c is not none else '--' }}<span>C</span></div>
+            <div class="hero-condition">
+              <p class="condition-title">{{ home_weather.condition or "Condition unavailable" }}</p>
+              <p>Feels like: {{ home_weather.feels_like_c|round|int if home_weather.feels_like_c is not none else '--' }} C</p>
+              <p>Rain chance: {{ home_weather.rain_probability|round|int if home_weather.rain_probability is not none else '--' }}%</p>
+            </div>
+          </div>
+          <div class="hero-meta-row">
+            <span>High {{ home_weather.temp_max_today|round|int if home_weather.temp_max_today is not none else '--' }} C</span>
+            <span>Low {{ home_weather.temp_min_today|round|int if home_weather.temp_min_today is not none else '--' }} C</span>
+            <span>Humidity {{ home_weather.humidity_percent|round|int if home_weather.humidity_percent is not none else '--' }}%</span>
+          </div>
+          <div class="aqi-chip {{ home_weather.aqi_class }}">
+            {{ home_weather.aqi }} AQI | {{ home_weather.aqi_label }}
+          </div>
+          {% if home_weather.updated_at %}
+            <p class="updated-line">Last updated: {{ home_weather.updated_at }}</p>
+          {% endif %}
+        </article>
+
+        <article class="glass-panel hourly-panel">
+          <h2>Hourly Snapshot</h2>
+          <div class="hourly-strip">
+            {% for item in hourly_preview %}
+              <div class="hourly-item">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.temp_c|round|int if item.temp_c is not none else '--' }} C</strong>
+                <small>{{ item.precip_probability|round|int if item.precip_probability is not none else '--' }}% rain</small>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+      </section>
+
+      <section class="metrics-grid">
+        <article class="glass-panel metric-card">
+          <h3>Wind</h3>
+          <p>{{ home_weather.wind_direction_deg|round|int if home_weather.wind_direction_deg is not none else '--' }} deg</p>
+          <span>{{ home_weather.wind_speed_kmh|round|int if home_weather.wind_speed_kmh is not none else '--' }} km/h</span>
+        </article>
+        <article class="glass-panel metric-card">
+          <h3>Gust Speed</h3>
+          <p>{{ home_weather.wind_gust_kmh|round|int if home_weather.wind_gust_kmh is not none else '--' }} km/h</p>
+          <span>Peak gust estimate</span>
+        </article>
+        <article class="glass-panel metric-card">
+          <h3>Cloud & Visibility</h3>
+          <p>{{ home_weather.cloud_cover_percent|round|int if home_weather.cloud_cover_percent is not none else '--' }}% cloud</p>
+          <span>{{ home_weather.visibility_km if home_weather.visibility_km is not none else '--' }} km visibility</span>
+        </article>
+        <article class="glass-panel metric-card">
+          <h3>Precipitation</h3>
+          <p>{{ home_weather.precip_mm if home_weather.precip_mm is not none else '--' }} mm</p>
+          <span>Current rainfall intensity</span>
+        </article>
+        <article class="glass-panel metric-card">
+          <h3>Pressure</h3>
+          <p>{{ home_weather.pressure_hpa|round|int if home_weather.pressure_hpa is not none else '--' }} hPa</p>
+          <span>Surface pressure</span>
+        </article>
+        <article class="glass-panel metric-card uv-card">
+          <h3>UV Index</h3>
+          <p>{{ home_weather.uv_index if home_weather.uv_index is not none else '--' }}</p>
+          <span>Use sun protection if outdoors</span>
+        </article>
+      </section>
+
+      <section class="bottom-grid">
+        <article class="glass-panel trend-panel">
+          <h2>Station AQI Trend</h2>
+          <div class="chart-wrap">
+            <canvas id="homeTrendChart"></canvas>
+          </div>
+        </article>
+
+        <article class="glass-panel map-wrap">
+          <div class="map-head">
+            <h2>Delhi AQI Spread</h2>
+            <p class="map-intro">Explore the latest AQI distribution across Delhi stations with clear category markers.</p>
+          </div>
+          <div class="map-body">
+            <div id="delhiHotspotMap" class="hotspot-map"></div>
+            <aside class="glass-panel legend-card">
+              <h3>Spread key</h3>
+              <div class="map-legend legend-panel">
+                {% for item in map.legend %}
+                  <<span>
+                    <i style="background-color: {{ item.color }};"></i>
+                        {{ item.label }}
+                        </span>
+                {% endfor %}
+              </div>
+            </aside>
+          </div>
+        </article>
+      </section>
+    <!-- Image Credit -->
+    <<a href="/free-video/sunrise-sunset-mountain-landscape_3544728#fromView=search&amp;page=1&amp;position=0&amp;uuid=245fe5a2-053f-4e25-99ae-d315f12a154a" 
+   target="_blank" 
+   rel="noopener noreferrer">
+   BaldasaridStock on Freepik
+</a>
+    </div>
+  </main>
+{% endblock %}
+
+{% block page_scripts %}
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script id="home-chart-data" type="application/json">{{ chart | tojson }}</script>
+  <script id="home-map-data" type="application/json">{{ map | tojson }}</script>
+{% endblock %}

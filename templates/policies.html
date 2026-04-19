@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Policy Insights | EcoAware Delhi{% endblock %}
+
+{% block page_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='policies.css') }}" />
+{% endblock %}
+
+{% block content %}
+  <main class="page-shell">
+    <div class="container policy-page">
+      <section class="page-heading">
+        <h1>Government & Policy Insights</h1>
+        <p>
+          Action-oriented interventions based on station hotspots, seasonal burden, and model-backed health suggestion flow.
+        </p>
+      </section>
+
+      <section class="panel policy-highlight">
+        <h2>Model-backed daily advisory</h2>
+        <p>
+          <strong>{{ model_summary.model_name }}</strong> predicts next-day Delhi AQI around
+          <strong>{{ model_summary.tomorrow }}</strong> ({{ model_summary.category }}).
+          Recommended advisory: {{ model_summary.advice }}
+        </p>
+        <p class="muted-text">Latest model training/data window: {{ model_summary.latest_date }}</p>
+      </section>
+
+      <section class="grid grid-2">
+        {% for item in policy_items %}
+          <article class="panel policy-card">
+            <h2>{{ item.title }}</h2>
+            <p>{{ item.detail }}</p>
+          </article>
+        {% endfor %}
+      </section>
+
+      <section class="grid grid-3">
+        {% for hotspot in hotspot_cards %}
+          <article class="panel hotspot-card">
+            <h2>{{ hotspot.name }}</h2>
+            <p class="hotspot-value">{{ hotspot.aqi }}</p>
+            <p><span class="aqi-badge {{ hotspot.status_class }}">{{ hotspot.status }}</span></p>
+            <p class="muted-text">{{ hotspot.date }}</p>
+          </article>
+        {% endfor %}
+      </section>
+    </div>
+  </main>
+{% endblock %}

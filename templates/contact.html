@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Contact | EcoAware Delhi{% endblock %}
+
+{% block page_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='contact.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+{% endblock %}
+
+{% block content %}
+<main class="page-shell">
+  <div class="container contact-page">
+
+    <!-- Ambient background orbs -->
+    <div class="orb orb-1" aria-hidden="true"></div>
+    <div class="orb orb-2" aria-hidden="true"></div>
+
+    <!-- Heading -->
+    <section class="page-heading">
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        EcoAware Delhi
+      </span>
+      <h1>Contact &amp; <em>Collaboration</em></h1>
+      <p>For datasets, civic integrations, and public-health coordination, connect with us.</p>
+    </section>
+
+    <!-- 3 Column Section -->
+    <section class="grid-3">
+
+      <!-- Contact -->
+      <article class="panel" style="--delay:0s">
+        <div class="panel-icon panel-icon--green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12 19.79 19.79 0 011.64 3.38 2 2 0 013.62 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 9.91a16 16 0 006.06 6.06l.98-.98a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+          </svg>
+        </div>
+        <h2>Contact</h2>
+        <hr class="panel-divider">
+        <ul class="panel-list">
+          <li>
+            <span class="list-label">Email</span>
+            <a href="mailto:ecoaware@gmail.com">ecoaware@gmail.com</a>
+          </li>
+          <li>
+            <span class="list-label">Phone</span>
+            <span>+91 XXXXX XXXXX</span>
+          </li>
+          <li>
+            <span class="list-label">Location</span>
+            <span>Delhi, India</span>
+          </li>
+        </ul>
+        <span class="status-badge">
+          <span class="status-dot"></span>Active
+        </span>
+      </article>
+
+      <!-- API -->
+      <article class="panel" style="--delay:.1s">
+        <div class="panel-icon panel-icon--teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+        </div>
+        <h2>API Details</h2>
+        <hr class="panel-divider">
+        <ul class="bullet-list">
+          <li>AQI API – Real-time pollution data</li>
+          <li>Weather API – Temperature &amp; humidity</li>
+          <li>Flask backend integration</li>
+        </ul>
+      </article>
+
+      <!-- Collaborators -->
+      <article class="panel" style="--delay:.2s">
+        <div class="panel-icon panel-icon--amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <h2>Collaborators</h2>
+        <hr class="panel-divider">
+        <ul class="avatar-list">
+          <li><span class="avatar av-n">N</span>Nishika</li>
+          <li><span class="avatar av-nj">NJ</span>Navyaa Jain</li>
+          <li><span class="avatar av-a">A</span>Aradhya Singh</li>
+          <li><span class="avatar av-p">P</span>Palak Harbola</li>
+        </ul>
+      </article>
+
+    </section>
+
+    <!-- Contact Form -->
+    <section class="panel form-section" style="--delay:.3s">
+      <div class="form-header">
+        <div>
+          <h2>Send a Message</h2>
+          <p class="form-sub">We'll respond within 24 hours.</p>
+        </div>
+        <div class="form-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </div>
+      </div>
+      <form class="contact-form" id="contactForm" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label for="contact_name">Your Name</label>
+            <input type="text" id="contact_name" name="name" placeholder="e.g. Priya Sharma" required>
+          </div>
+          <div class="field">
+            <label for="contact_email">Email Address</label>
+            <input type="email" id="contact_email" name="email" placeholder="you@example.com" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="contact_phone">Phone Number <span class="optional">(optional)</span></label>
+          <input type="tel" id="contact_phone" name="phone" placeholder="+91 XXXXX XXXXX">
+        </div>
+        <div class="field">
+          <label for="contact_message">Your Message</label>
+          <textarea id="contact_message" name="message" placeholder="Tell us about your dataset, integration idea, or collaboration proposal…" rows="5"></textarea>
+          <span class="char-hint" id="contactCharHint">0 / 800</span>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">
+            Send Message
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+          <button type="reset" class="btn-ghost">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Feedback Form -->
+    <section class="panel form-section feedback-section" style="--delay:.4s">
+      <div class="form-header">
+        <div>
+          <h2>Share Feedback</h2>
+          <p class="form-sub">Help us improve EcoAware Delhi.</p>
+        </div>
+        <div class="feedback-rating" id="ratingGroup" role="group" aria-label="Rate your experience">
+          <button class="rating-btn" data-val="1" title="Poor">1</button>
+          <button class="rating-btn" data-val="2" title="Fair">2</button>
+          <button class="rating-btn" data-val="3" title="Good">3</button>
+          <button class="rating-btn" data-val="4" title="Great">4</button>
+          <button class="rating-btn" data-val="5" title="Excellent">5</button>
+        </div>
+      </div>
+      <form class="feedback-form" id="feedbackForm" novalidate>
+        <div class="field">
+          <label for="feedback_text">Your Feedback</label>
+          <textarea id="feedback_text" name="feedback" placeholder="What's working well? What could be better?" rows="4"></textarea>
+          <span class="char-hint" id="feedbackCharHint">0 / 500</span>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary btn-teal">
+            Submit Feedback
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </section>
+    
+
+  </div>
+</main>
+
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+<script>
+  // Character counters
+  function attachCounter(textareaId, hintId, max) {
+    const ta = document.getElementById(textareaId);
+    const hint = document.getElementById(hintId);
+    if (!ta || !hint) return;
+    ta.setAttribute('maxlength', max);
+    ta.addEventListener('input', () => {
+      hint.textContent = ta.value.length + ' / ' + max;
+    });
+  }
+  attachCounter('contact_message', 'contactCharHint', 800);
+  attachCounter('feedback_text',   'feedbackCharHint', 500);
+
+  // Rating buttons
+  const ratingBtns = document.querySelectorAll('.rating-btn');
+  ratingBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      ratingBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Toast helper
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // Contact form
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name  = document.getElementById('contact_name').value.trim();
+    const email = document.getElementById('contact_email').value.trim();
+    if (!name || !email) { showToast('Please fill in your name and email.'); return; }
+    showToast("✓ Message sent! We'll be in touch within 24 hours.");
+    this.reset();
+    document.getElementById('contactCharHint').textContent = '0 / 800';
+  });
+
+  // Feedback form
+  document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    showToast('✓ Feedback submitted. Thank you!');
+    this.reset();
+    document.getElementById('feedbackCharHint').textContent = '0 / 500';
+    ratingBtns.forEach(b => b.classList.remove('active'));
+  });
+</script>
+{% endblock %}
