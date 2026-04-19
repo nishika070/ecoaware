@@ -3,6 +3,7 @@
 {% block title %}Home | EcoAware Delhi{% endblock %}
 
 {% block page_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -12,227 +13,128 @@
 {% endblock %}
 
 {% block content %}
-  <main class="page-shell home-shell">
-    <div class="container home-page">
-      <section class="hero hero-grid">
-        <div class="hero-copy">
-          <p class="chip chip-warning">{{ hero.eyebrow }}</p>
-          <h1>{{ hero.title }}</h1>
-          <p>{{ hero.description }}</p>
+  <main class="weather-home">
+    <div class="weather-bg-layer">
+      <video muted playsinline preload="metadata">
+        <source src="{{ url_for('static', filename='bg.mp4') }}" type="video/mp4" />
+      </video>
+    </div>
+    <div class="weather-bg-overlay"></div>
 
-          <form method="get" action="{{ url_for('home') }}" class="station-inline-panel">
-            <label for="station">Select Station</label>
-            <select id="station" name="station" onchange="this.form.submit()">
-              {% for station in stations %}
-                <option value="{{ station }}" {% if station == selected_station %}selected{% endif %}>{{ station }}</option>
-              {% endfor %}
-            </select>
-          </form>
+    <div class="container weather-content">
+      <div class="breadcrumb-row">Weather &gt; India &gt; Delhi &gt; {{ selected_station }}</div>
+
+      <div class="title-row">
+        <div>
+          <h1>{{ selected_station }} Weather Conditions</h1>
+          <p>Current temperature level with AQI and weather parameter dashboard.</p>
         </div>
+        <form method="get" action="{{ url_for('home') }}" class="station-form">
+          <label for="station">Station</label>
+          <select id="station" name="station" onchange="this.form.submit()">
+            {% for station in stations %}
+              <option value="{{ station }}" {% if station == selected_station %}selected{% endif %}>{{ station }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
 
-        <div class="hero-visual">
-          <div class="hero-glow"></div>
-          <div class="hero-visual-card">
-            <p class="hero-label">Current focus</p>
-            <h2>{{ selected_station }}</h2>
-            <div class="hero-stat-row">
-              <div>
-                <span>City prediction</span>
-                <strong>{{ secondary_metrics[0].value }}</strong>
-              </div>
-              <div>
-                <span>Stations tracked</span>
-                <strong>{{ secondary_metrics[1].value }}</strong>
-              </div>
+      <section class="hero-row">
+        <article class="glass-panel hero-panel">
+          <div class="hero-temp-line">
+            <div class="hero-temp">{{ home_weather.temperature_c|round|int if home_weather.temperature_c is not none else '--' }}<span>C</span></div>
+            <div class="hero-condition">
+              <p class="condition-title">{{ home_weather.condition or "Condition unavailable" }}</p>
+              <p>Feels like: {{ home_weather.feels_like_c|round|int if home_weather.feels_like_c is not none else '--' }} C</p>
+              <p>Rain chance: {{ home_weather.rain_probability|round|int if home_weather.rain_probability is not none else '--' }}%</p>
             </div>
-            <p class="hero-mini-text">
-              Live home view tailored to the selected Delhi station and your project dataset.
-            </p>
           </div>
-        </div>
+          <div class="hero-meta-row">
+            <span>High {{ home_weather.temp_max_today|round|int if home_weather.temp_max_today is not none else '--' }} C</span>
+            <span>Low {{ home_weather.temp_min_today|round|int if home_weather.temp_min_today is not none else '--' }} C</span>
+            <span>Humidity {{ home_weather.humidity_percent|round|int if home_weather.humidity_percent is not none else '--' }}%</span>
+          </div>
+          <div class="aqi-chip {{ home_weather.aqi_class }}">
+            {{ home_weather.aqi }} AQI | {{ home_weather.aqi_label }}
+          </div>
+          {% if home_weather.updated_at %}
+            <p class="updated-line">Last updated: {{ home_weather.updated_at }}</p>
+          {% endif %}
+        </article>
+
+        <article class="glass-panel hourly-panel">
+          <h2>Hourly Snapshot</h2>
+          <div class="hourly-strip">
+            {% for item in hourly_preview %}
+              <div class="hourly-item">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.temp_c|round|int if item.temp_c is not none else '--' }} C</strong>
+                <small>{{ item.precip_probability|round|int if item.precip_probability is not none else '--' }}% rain</small>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
       </section>
 
-      <section class="home-layout">
-        <div class="home-main">
-          <section class="grid grid-4 metrics-grid">
-            {% for metric in primary_metrics %}
-              <article class="card card-strong">
-                <div class="card-title">{{ metric.title }}</div>
-                <div class="card-value">{{ metric.value }}</div>
-                <p class="card-note">{{ metric.note }}</p>
-              </article>
-            {% endfor %}
-          </section>
+      <section class="metrics-grid">
+        <article class="glass-panel metric-card">
+          <h3>Wind</h3>
+          <p>{{ home_weather.wind_direction_deg|round|int if home_weather.wind_direction_deg is not none else '--' }} deg</p>
+          <span>{{ home_weather.wind_speed_kmh|round|int if home_weather.wind_speed_kmh is not none else '--' }} km/h</span>
+        </article>
+        <article class="glass-panel metric-card">
+          <h3>Gust Speed</h3>
+          <p>{{ home_weather.wind_gust_kmh|round|int if home_weather.wind_gust_kmh is not none else '--' }} km/h</p>
+          <span>Peak gust estimate</span>
+        </article>
+        <article class="glass-panel metric-card">
+          <h3>Cloud & Visibility</h3>
+          <p>{{ home_weather.cloud_cover_percent|round|int if home_weather.cloud_cover_percent is not none else '--' }}% cloud</p>
+          <span>{{ home_weather.visibility_km if home_weather.visibility_km is not none else '--' }} km visibility</span>
+        </article>
+        <article class="glass-panel metric-card">
+          <h3>Precipitation</h3>
+          <p>{{ home_weather.precip_mm if home_weather.precip_mm is not none else '--' }} mm</p>
+          <span>Current rainfall intensity</span>
+        </article>
+        <article class="glass-panel metric-card">
+          <h3>Pressure</h3>
+          <p>{{ home_weather.pressure_hpa|round|int if home_weather.pressure_hpa is not none else '--' }} hPa</p>
+          <span>Surface pressure</span>
+        </article>
+        <article class="glass-panel metric-card uv-card">
+          <h3>UV Index</h3>
+          <p>{{ home_weather.uv_index if home_weather.uv_index is not none else '--' }}</p>
+          <span>Use sun protection if outdoors</span>
+        </article>
+      </section>
 
-          <section class="grid grid-2 support-metrics">
-            {% for metric in secondary_metrics %}
-              <article class="panel support-card">
-                <div class="card-title">{{ metric.title }}</div>
-                <div class="card-value">{{ metric.value }}</div>
-                <p class="card-note">{{ metric.note }}</p>
-              </article>
-            {% endfor %}
-          </section>
+      <section class="bottom-grid">
+        <article class="glass-panel trend-panel">
+          <h2>Station AQI Trend</h2>
+          <div class="chart-wrap">
+            <canvas id="homeTrendChart"></canvas>
+          </div>
+        </article>
 
-          <section class="panel">
-            <div class="section-heading">
-              <div>
-                <p class="section-kicker">Live Weather</p>
-                <h2>{{ selected_station }}: today + next 5 days</h2>
-              </div>
-            </div>
-
-            {% if live_weather.error %}
-              <p class="highlight">{{ live_weather.error }}</p>
-            {% else %}
-              <section class="grid grid-4">
-                <article class="card">
-                  <div class="card-title">Current Temperature</div>
-                  <div class="card-value">
-                    {% if live_weather.current.temperature_c is not none %}{{ '%.1f'|format(live_weather.current.temperature_c) }} C{% else %}Unavailable{% endif %}
-                  </div>
-                  <p class="card-note">{{ live_weather.current.condition or "Unknown condition" }}</p>
-                </article>
-                <article class="card">
-                  <div class="card-title">Feels Like</div>
-                  <div class="card-value">
-                    {% if live_weather.current.feels_like_c is not none %}{{ '%.1f'|format(live_weather.current.feels_like_c) }} C{% else %}Unavailable{% endif %}
-                  </div>
-                  <p class="card-note">Humidity {% if live_weather.current.humidity_percent is not none %}{{ live_weather.current.humidity_percent|round|int }}%{% else %}Unavailable{% endif %}</p>
-                </article>
-                <article class="card">
-                  <div class="card-title">Wind Speed</div>
-                  <div class="card-value">
-                    {% if live_weather.current.wind_speed_kmh is not none %}{{ live_weather.current.wind_speed_kmh|round|int }} km/h{% else %}Unavailable{% endif %}
-                  </div>
-                  <p class="card-note">Live surface wind at station</p>
-                </article>
-                <article class="card">
-                  <div class="card-title">Current Rain</div>
-                  <div class="card-value">
-                    {% if live_weather.current.precip_mm is not none %}{{ '%.1f'|format(live_weather.current.precip_mm) }} mm{% else %}Unavailable{% endif %}
-                  </div>
-                  <p class="card-note">Realtime precipitation intensity</p>
-                </article>
-              </section>
-
-              <section class="grid grid-4 forecast-grid">
-                {% for day in live_weather.forecast_days %}
-                  <article class="card forecast-card">
-                    <div class="card-title">{{ day.day_label }} - {{ day.date_label }}</div>
-                    <div class="card-value">
-                      {% if day.max_temp is not none %}{{ day.max_temp|round|int }} C{% else %}--{% endif %}
-                      /
-                      {% if day.min_temp is not none %}{{ day.min_temp|round|int }} C{% else %}--{% endif %}
-                    </div>
-                    <p class="card-note">{{ day.condition }}</p>
-                    <p class="card-note">Rain chance: {% if day.precip_probability is not none %}{{ day.precip_probability|round|int }}%{% else %}Unavailable{% endif %}</p>
-                  </article>
-                {% endfor %}
-              </section>
-
-              <section class="grid grid-4">
-                <article class="card">
-                  <div class="card-title">US AQI</div>
-                  <div class="card-value">
-                    {% if live_weather.air_quality.us_aqi is not none %}{{ live_weather.air_quality.us_aqi|round|int }}{% else %}Unavailable{% endif %}
-                  </div>
-                  <p class="card-note">Live AQI feed for selected station</p>
-                </article>
-                <article class="card">
-                  <div class="card-title">PM2.5</div>
-                  <div class="card-value">
-                    {% if live_weather.air_quality.pm2_5 is not none %}{{ '%.1f'|format(live_weather.air_quality.pm2_5) }}{% else %}Unavailable{% endif %}
-                  </div>
-                  <p class="card-note">ug/m3</p>
-                </article>
-                <article class="card">
-                  <div class="card-title">PM10</div>
-                  <div class="card-value">
-                    {% if live_weather.air_quality.pm10 is not none %}{{ '%.1f'|format(live_weather.air_quality.pm10) }}{% else %}Unavailable{% endif %}
-                  </div>
-                  <p class="card-note">ug/m3</p>
-                </article>
-                <article class="card">
-                  <div class="card-title">NO2</div>
-                  <div class="card-value">
-                    {% if live_weather.air_quality.nitrogen_dioxide is not none %}{{ '%.1f'|format(live_weather.air_quality.nitrogen_dioxide) }}{% else %}Unavailable{% endif %}
-                  </div>
-                  <p class="card-note">ug/m3</p>
-                </article>
-              </section>
-
-              {% if live_weather.fetched_at %}
-                <p class="card-note">Last updated: {{ live_weather.fetched_at }}</p>
-              {% endif %}
-            {% endif %}
-          </section>
-
-          <section class="panel chart-panel">
-            <div class="section-heading">
-              <div>
-                <p class="section-kicker">Station Trend</p>
-                <h2>{{ selected_station }} AQI movement</h2>
-              </div>
-            </div>
-            <div class="chart-wrap home-chart-wrap">
-              <canvas id="homeTrendChart"></canvas>
-            </div>
-          </section>
-
-          <section class="panel map-panel">
-            <div class="section-heading">
-              <div>
-                <p class="section-kicker">Delhi Hotspots</p>
-                <h2>Current AQI spread across monitored stations</h2>
-              </div>
-            </div>
+        <article class="glass-panel map-wrap">
+          <div class="map-head">
+            <h2>Delhi AQI Spread</h2>
+            <p class="map-intro">Explore the latest AQI distribution across Delhi stations with clear category markers.</p>
+          </div>
+          <div class="map-body">
             <div id="delhiHotspotMap" class="hotspot-map"></div>
-          </section>
-        </div>
-
-        <aside class="home-sidebar">
-          <div class="advisory advisory-sticky panel">
-            <div class="advisory-head">
-              <h2>{{ advisory["headline"] }}</h2>
-              <span class="chip chip-danger">{{ advisory["tag"] }}</span>
-            </div>
-
-            <p class="advisory-subtext">{{ advisory["summary"] }}</p>
-
-            <ul>
-              {% for item in advisory["items"] %}
-                <li>{{ item }}</li>
-              {% endfor %}
-            </ul>
+            <aside class="glass-panel legend-card">
+              <h3>Spread key</h3>
+              <div class="map-legend legend-panel">
+                {% for item in map.legend %}
+                  <span><i style="background: {{ item.color }};"></i>{{ item.label }}</span>
+                {% endfor %}
+              </div>
+            </aside>
           </div>
-        </aside>
+        </article>
       </section>
-
-      <footer class="site-footer panel">
-        <div class="footer-grid">
-          <div>
-            <h2>References</h2>
-            <p>AQI dataset source: CPCB AQI repository and your merged Delhi dataset files.</p>
-            <p>Map layer: OpenStreetMap tiles via Leaflet.</p>
-            <p>Prediction layer: Random Forest / Decision Tree flow from your Python backend.</p>
-          </div>
-
-          <div>
-            <h2>Contact</h2>
-            <p>Contact Number: Add your number here</p>
-            <p>Email: Add your email here</p>
-          </div>
-
-          <div>
-            <h2>Collaborators</h2>
-            <p>Aradhana Singh</p>
-            <p>Nishika</p>
-            <p>Navya Jain</p>
-            <p>Palak Harbola</p>
-          </div>
-        </div>
-      </footer>
     </div>
   </main>
 {% endblock %}
@@ -243,8 +145,6 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
-  <script>
-    window.ecoAwareHomeChart = {{ chart | tojson }};
-    window.ecoAwareHomeMap = {{ map | tojson }};
-  </script>
+  <script id="home-chart-data" type="application/json">{{ chart | tojson }}</script>
+  <script id="home-map-data" type="application/json">{{ map | tojson }}</script>
 {% endblock %}

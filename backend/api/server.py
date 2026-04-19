@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 
 from aqi_service import (
     build_prediction_payload,
@@ -6,7 +6,6 @@ from aqi_service import (
     get_contact_page_context,
     get_home_context,
     get_policies_page_context,
-    get_temperature_page_context,
 )
 from station_map import DEFAULT_STATION, STATION_COORDINATES
 
@@ -45,11 +44,7 @@ def aqi_page():
 @app.route("/temperature")
 def temperature_page():
     selected_station = request.args.get("station") or DEFAULT_STATION
-    return render_template(
-        "temperature.html",
-        active_page="temperature",
-        **get_temperature_page_context(selected_station),
-    )
+    return redirect(url_for("home", station=selected_station))
 
 
 @app.route("/policies")

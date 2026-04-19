@@ -2,17 +2,37 @@
 
 {% block title %}AQI | EcoAware Delhi{% endblock %}
 
+{% block page_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='aqi.css') }}" />
+{% endblock %}
+
 {% block content %}
   <main class="page-shell">
     <div class="container aqi-page">
       <section class="page-heading">
         <h1>Delhi AQI Intelligence</h1>
         <p>
-          Station-wise AQI view from your dataset, with latest status and intervention guidance.
+          Station-wise AQI status with model-backed next-day insight, risk segmentation, and intervention-focused highlights.
         </p>
       </section>
 
+      <section class="grid grid-4">
+        {% for card in aqi_summary_cards %}
+          <article class="card card-strong">
+            <div class="card-title">{{ card.title }}</div>
+            <div class="card-value">{{ card.value }}</div>
+            <p class="card-note">{{ card.note }}</p>
+          </article>
+        {% endfor %}
+      </section>
+
       <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Live Station Table</p>
+            <h2>Latest AQI status by station</h2>
+          </div>
+        </div>
         <table>
           <thead>
             <tr>
@@ -20,15 +40,20 @@
               <th>Latest AQI</th>
               <th>Status</th>
               <th>Latest Date</th>
-              <th>Advice</th>
+              <th>Health Advice</th>
             </tr>
           </thead>
           <tbody>
             {% for row in station_rows %}
               <tr>
                 <td>{{ row.station }}</td>
-                <td>{{ row.aqi }}</td>
-                <td>{{ row.status }}</td>
+                <td><strong>{{ row.aqi }}</strong></td>
+                <td>
+                  <span class="aqi-badge {{ row.status_class }}">
+                    <span class="aqi-badge-dot" style="background-color: {{ row.color }};"></span>
+                    {{ row.status }}
+                  </span>
+                </td>
                 <td>{{ row.latest_date }}</td>
                 <td>{{ row.advice }}</td>
               </tr>
@@ -42,10 +67,32 @@
           <article class="panel hotspot-card">
             <h2>{{ row.station }}</h2>
             <p class="hotspot-value">{{ row.aqi }}</p>
-            <p>{{ row.status }}</p>
+            <p><span class="aqi-badge {{ row.status_class }}">{{ row.status }}</span></p>
             <p class="muted-text">{{ row.latest_date }}</p>
           </article>
         {% endfor %}
+      </section>
+
+      <section class="grid grid-2">
+        <article class="panel">
+          <h2>AQI category guide</h2>
+          <div class="legend-stack">
+            {% for item in aqi_legend %}
+              <div class="legend-item">
+                <span class="legend-dot" style="background-color: {{ item.color }};"></span>
+                <span><strong>{{ item.label }}</strong> ({{ item.range }})</span>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+        <article class="panel">
+          <h2>Status distribution</h2>
+          <div class="status-cluster">
+            {% for item in status_distribution %}
+              <span class="status-pill">{{ item.status }}: {{ item.count }}</span>
+            {% endfor %}
+          </div>
+        </article>
       </section>
 
       <section class="panel alert-strip">

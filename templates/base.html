@@ -15,30 +15,24 @@
   </head>
 
   <body>
-    <!-- ================= NAVBAR ================= -->
-    <nav class="navbar">
-      <div class="container navbar-inner">
-        <a href="{{ url_for('home') }}" class="logo" aria-label="EcoAware Home">
-          <span class="logo-badge">EA</span>
-          EcoAware Delhi
-        </a>
+    <header class="site-header">
+      <div class="container topbar">
+        <a href="{{ url_for('home') }}" class="brand" aria-label="EcoAware Home">EcoAware</a>
 
-        <div class="nav-links">
-          <a href="{{ url_for('home') }}" class="{% if active_page == 'home' %}active{% endif %}">Home</a>
+        <nav class="top-links">
           <a href="{{ url_for('aqi_page') }}" class="{% if active_page == 'aqi' %}active{% endif %}">AQI</a>
-          <a href="{{ url_for('temperature_page') }}" class="{% if active_page == 'temperature' %}active{% endif %}">Temperature</a>
           <a href="{{ url_for('policies_page') }}" class="{% if active_page == 'policies' %}active{% endif %}">Policy Insights</a>
           <a href="{{ url_for('contact_page') }}" class="{% if active_page == 'contact' %}active{% endif %}">Contact</a>
-        </div>
+        </nav>
       </div>
-    </nav>
+    </header>
 
     <!-- ================= PAGE CONTENT ================= -->
     {% block content %}{% endblock %}
 
     <!-- ================= DATA FROM FLASK ================= -->
-    <script>
-      window.stationCoordinates = {{ station_coordinates | default({}, true) | tojson }};
+    <script id="station-coordinates-data" type="application/json">
+      {{ station_coordinates | default({}, true) | tojson }}
     </script>
 
     <!-- ================= MAIN JS ================= -->
