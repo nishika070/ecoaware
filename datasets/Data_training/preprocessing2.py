@@ -34,4 +34,14 @@ def normalise(df):
     df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
     return df
 
+def run_preprocessing():
+    df = missing_values(df)
+    df = handle_outliers(df)
+    df = normalise(df)
+    df.to_csv("..\\ecoaware\\datasets\\Data_training\\Weather_preprocessed.csv", index=False)
+
+if __name__ == "__main__":
+    run_preprocessing()
+    
+
 
