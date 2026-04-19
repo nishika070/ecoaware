@@ -1,8 +1,8 @@
 import pandas as pd
 import os
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
-from sklearn.model_selection import train_test_split
-# LOAD + RESHAPE DATA
+
+#load and reshape data
 def load_and_merge_data(folder_path):
     dataframes = []
 
@@ -14,11 +14,12 @@ def load_and_merge_data(folder_path):
                 df = pd.read_excel(file_path)
                 df.columns = df.columns.str.strip()
 
-                # Convert wide → long format
+                #Convert wide → long format
                 df = df.melt(id_vars=["Date"], var_name="Month", value_name="AQI")
 
-                # Add location
+                #Extract year & location from filename
                 parts = file.split("_")
+                df["year"] = int(parts[2]) if len(parts) > 2 else 0
                 df["location"] = parts[3] if len(parts) > 3 else "unknown"
 
                 dataframes.append(df)
@@ -27,24 +28,34 @@ def load_and_merge_data(folder_path):
                 continue
 
     return pd.concat(dataframes, ignore_index=True)
-# CLEAN DATA
+
+#clean data
 def clean_data(df):
     df = df.dropna(subset=["AQI"])
     return df
-# PROCESS DATE + MONTH
+
+#create day of year--instead of day+month 
 def process_date(df):
     df["Date"] = pd.to_numeric(df["Date"], errors='coerce')
-
-    # Convert month names to numbers
     df["Month"] = pd.to_datetime(df["Month"], format='%B').dt.month
 
+    df["full_date"] = pd.to_datetime(
+        dict(year=df["year"], month=df["Month"], day=df["Date"]),
+        errors='coerce'
+    )
+
+    df["day_of_year"] = df["full_date"].dt.dayofyear
+    df = df.drop(columns=["Date", "Month", "full_date"])
+
     return df
-# ENCODE LOCATION
+
+#encode location
 def encode_data(df):
     le = LabelEncoder()
     df["location"] = le.fit_transform(df["location"].astype(str))
     return df
-# OUTLIER HANDLING
+
+#handling outliers
 def handle_outliers(df):
     Q1 = df["AQI"].quantile(0.25)
     Q3 = df["AQI"].quantile(0.75)
@@ -54,27 +65,30 @@ def handle_outliers(df):
     upper = Q3 + 1.5 * IQR
 
     df["AQI"] = df["AQI"].clip(lower, upper)
-
     return df
-# SCALE DATA
+
+#data scaling
 def scale_data(X):
     scaler = MinMaxScaler()
-    return scaler.fit_transform(X)
-# SPLIT DATA
-def split_data(df):
-    X = df[["Date", "Month", "location"]]
+    X_scaled = scaler.fit_transform(X)
+
+    return pd.DataFrame(X_scaled, columns=X.columns)
+
+#data preparing--all data for training 
+def prepare_data(df):
+    X = df[["day_of_year", "year", "location"]]
     y = df["AQI"]
 
     X = scale_data(X)
 
-    return train_test_split(X, y, test_size=0.2, random_state=42)
-# SAVE DATA
-def save_data(X_train, X_test, y_train, y_test, output_path):
-    pd.DataFrame(X_train).to_csv(os.path.join(output_path, "X_train.csv"), index=False)
-    pd.DataFrame(X_test).to_csv(os.path.join(output_path, "X_test.csv"), index=False)
-    y_train.to_csv(os.path.join(output_path, "y_train.csv"), index=False)
-    y_test.to_csv(os.path.join(output_path, "y_test.csv"), index=False)
-# MAIN
+    return X, y
+
+#save data
+def save_full_data(X, y, output_path):
+    X.to_csv(os.path.join(output_path, "X.csv"), index=False)
+    y.to_csv(os.path.join(output_path, "y.csv"), index=False)
+
+#main 
 def run_preprocessing():
     folder_path = "../datasets/Data_training"
     output_path = "../datasets"
@@ -85,8 +99,9 @@ def run_preprocessing():
     df = encode_data(df)
     df = handle_outliers(df)
 
-    X_train, X_test, y_train, y_test = split_data(df)
+    X, y = prepare_data(df)
+    save_full_data(X, y, output_path)
 
-    save_data(X_train, X_test, y_train, y_test, output_path)
+
 if __name__ == "__main__":
     run_preprocessing()
