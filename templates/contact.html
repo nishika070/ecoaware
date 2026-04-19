@@ -168,12 +168,7 @@
         </div>
       </form>
     </section>
-
-    <!-- Image Credit -->
-    <p class="image-credit">
-      Background image by
-      <a href="YOUR_SOURCE_LINK" target="_blank" rel="noopener noreferrer">Source Name</a>
-    </p>
+    
 
   </div>
 </main>
@@ -217,7 +212,7 @@
     const name  = document.getElementById('contact_name').value.trim();
     const email = document.getElementById('contact_email').value.trim();
     if (!name || !email) { showToast('Please fill in your name and email.'); return; }
-    showToast('✓ Message sent! We'll be in touch within 24 hours.');
+    showToast("✓ Message sent! We'll be in touch within 24 hours.");
     this.reset();
     document.getElementById('contactCharHint').textContent = '0 / 800';
   });

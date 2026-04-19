@@ -361,7 +361,7 @@ select {
   width: 100%;
   outline: none;
   transition: border-color .2s, background .2s, box-shadow .2s;
-  -webkit-appearance: none;
+  
 }
 input::placeholder, textarea::placeholder { color: var(--text-dim); }
 input:focus, textarea:focus {
