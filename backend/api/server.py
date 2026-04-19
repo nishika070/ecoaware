@@ -34,10 +34,12 @@ def home():
 
 @app.route("/aqi")
 def aqi_page():
+    station = request.args.get("station", "all")   # 👈 get dropdown value
+
     return render_template(
         "aqi.html",
         active_page="aqi",
-        **get_aqi_page_context(),
+        **get_aqi_page_context(station),   # 👈 pass it
     )
 
 
