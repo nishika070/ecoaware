@@ -2,6 +2,10 @@
 
 {% block title %}Policy Insights | EcoAware Delhi{% endblock %}
 
+{% block page_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='policies.css') }}" />
+{% endblock %}
+
 {% block content %}
   <main class="page-shell">
     <div class="container policy-page">

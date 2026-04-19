@@ -2,33 +2,85 @@
 
 {% block title %}Contact | EcoAware Delhi{% endblock %}
 
+{% block page_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='contact.css') }}" />
+{% endblock %}
+
 {% block content %}
-  <main class="page-shell">
-    <div class="container contact-page">
-      <section class="page-heading">
-        <h1>Contact & Collaboration</h1>
-        <p>
-          For datasets, civic integrations, and public-health coordination, use this page as your showcase collaboration brief.
-        </p>
-      </section>
+<main class="page-shell">
 
-      <section class="grid grid-2">
-        {% for card in contact_cards %}
-          <article class="panel contact-card">
-            <h2>{{ card.title }}</h2>
-            <p>{{ card.detail }}</p>
-          </article>
-        {% endfor %}
-      </section>
+  <div class="container contact-page">
 
-      <section class="panel">
-        <h2>Open collaboration tracks</h2>
-        <ul class="contact-list">
-          {% for point in collaboration_points %}
-            <li>{{ point }}</li>
-          {% endfor %}
+    <!-- Heading -->
+    <section class="page-heading">
+      <h1>Contact & Collaboration</h1>
+      <p>
+        For datasets, civic integrations, and public-health coordination, connect with us.
+      </p>
+    </section>
+
+    <!-- 3 Column Section -->
+    <section class="grid-3">
+
+      <!-- Contact -->
+      <article class="panel">
+        <h2>Contact</h2>
+        <p>Email: ecoaware@gmail.com</p>
+        <p>Phone: +91 XXXXX XXXXX</p>
+        <p>Location: Delhi, India</p>
+      </article>
+
+      <!-- API -->
+      <article class="panel">
+        <h2>API Details</h2>
+        <ul>
+          <li>AQI API – Real-time pollution data</li>
+          <li>Weather API – Temperature & humidity</li>
+          <li>Flask backend integration</li>
         </ul>
-      </section>
-    </div>
-  </main>
+      </article>
+
+      <!-- Collaborators -->
+      <article class="panel">
+        <h2>Collaborators</h2>
+        <ul>
+          <li>Nishika</li>
+          <li>Naved Jain</li>
+          <li>Aradhya</li>
+          <li>Palak Kharbala</li>
+        </ul>
+      </article>
+
+    </section>
+
+    <!-- Contact Form -->
+    <section class="panel form-section">
+      <h2>Contact Form</h2>
+      <form class="contact-form">
+        <input type="text" placeholder="Your Name" required>
+        <input type="email" placeholder="Your Email" required>
+        <input type="tel" placeholder="Phone Number">
+        <textarea placeholder="Your Message"></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+    </section>
+
+    <!-- Feedback Form -->
+    <section class="panel form-section">
+      <h2>Feedback</h2>
+      <form class="feedback-form">
+        <textarea placeholder="Your Feedback"></textarea>
+        <button type="submit">Submit Feedback</button>
+      </form>
+    </section>
+
+    <!-- Image Credit -->
+    <p class="image-credit">
+      Background image by 
+      <a href="YOUR_SOURCE_LINK" target="_blank">Source Name</a>
+    </p>
+
+  </div>
+
+</main>
 {% endblock %}

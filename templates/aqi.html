@@ -2,6 +2,10 @@
 
 {% block title %}AQI | EcoAware Delhi{% endblock %}
 
+{% block page_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='aqi.css') }}" />
+{% endblock %}
+
 {% block content %}
   <main class="page-shell">
     <div class="container aqi-page">

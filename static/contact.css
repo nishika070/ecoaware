@@ -1,0 +1,154 @@
+/* Background */
+body {
+  background: var(--bg-gradient);
+  color: var(--text-main);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Container */
+.contact-page {
+  padding: 40px 20px;
+}
+
+/* Heading */
+.page-heading {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.page-heading h1 {
+  font-size: 36px;
+  font-weight: 600;
+}
+
+.page-heading p {
+  color: var(--text-muted);
+}
+
+/* Grid */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+/* Glass Card */
+.panel {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  padding: 20px;
+  border-radius: 16px;
+  transition: 0.3s ease;
+}
+
+.panel:hover {
+  transform: translateY(-5px);
+}
+
+/* Titles */
+.panel h2 {
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+/* Lists */
+.panel ul {
+  padding-left: 18px;
+  color: var(--text-muted);
+}
+
+/* Forms */
+.form-section {
+  margin-top: 20px;
+}
+
+/* Inputs */
+input, textarea {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  padding: 12px;
+  border-radius: 10px;
+  color: white;
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #aaa;
+}
+
+/* Button */
+button {
+  background: linear-gradient(135deg, #2c7be5, #38b2ac);
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* Credit */
+.image-credit {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 30px;
+  color: var(--text-muted);
+}
+
+.image-credit a {
+  color: var(--accent);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}/* Page Background FIX */
+body {
+  background: linear-gradient(135deg, #0b1c2c, #2c7a7b, #7aa67a);
+  min-height: 100vh;
+  color: white;
+}
+
+/* Container center */
+.contact-page {
+  max-width: 1100px;
+  margin: auto;
+}
+
+/* Cards FIX */
+.panel {
+  background: rgba(0, 0, 0, 0.4); /* darker so visible */
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 20px;
+}
+
+/* Form layout FIX */
+.contact-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.contact-form textarea {
+  grid-column: span 2;
+}
+
+.contact-form button {
+  grid-column: span 2;
+}
+
+/* Feedback full width */
+.feedback-form textarea {
+  width: 100%;
+}
