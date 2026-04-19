@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+import joblib
 
 #load and reshape data
 def load_and_merge_data(folder_path):
@@ -53,6 +54,7 @@ def process_date(df):
 def encode_data(df):
     le = LabelEncoder()
     df["location"] = le.fit_transform(df["location"].astype(str))
+    joblib.dump(le, "../models/location_encoder.pkl")
     return df
 
 #handling outliers
@@ -71,7 +73,7 @@ def handle_outliers(df):
 def scale_data(X):
     scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X)
-
+    joblib.dump(scaler, "../models/data_scaler_aqi.pkl")
     return pd.DataFrame(X_scaled, columns=X.columns)
 
 #data preparing--all data for training 
@@ -85,8 +87,8 @@ def prepare_data(df):
 
 #save data
 def save_full_data(X, y, output_path):
-    X.to_csv(os.path.join(output_path, "X.csv"), index=False)
-    y.to_csv(os.path.join(output_path, "y.csv"), index=False)
+    X.to_csv(os.path.join(output_path, "AQI_X.csv"), index=False)
+    y.to_csv(os.path.join(output_path, "AQI_y.csv"), index=False)
 
 #main 
 def run_preprocessing():

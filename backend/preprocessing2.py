@@ -1,11 +1,10 @@
 import pandas as pd 
 import numpy as np 
-from sklearn.preprocessing import LabelEncoder 
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import MinMaxScaler
+import joblib
 
-
-df=pd.read_csv("..\\ecoaware\\datasets\\Data_training\\POWER_Point_Daily_20000101_20260415_034d16N_090d61E_LST.csv")
+df=pd.read_csv("..\\datasets\\Data_training\\POWER_Point_Daily_20000101_20260415_034d16N_090d61E_LST.csv")
 numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
 
 # instructions given that outliers -999 are actually NaNs
@@ -32,16 +31,17 @@ def handle_outliers(df):
 def normalise(df):
     scaler = MinMaxScaler()
     df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
+    joblib.dump(scaler, "../models/data_scaler_weather.pkl")
     return df
 
-def run_preprocessing():
+def run_preprocessing(df):
     df = missing_values(df)
     df = handle_outliers(df)
     df = normalise(df)
-    df.to_csv("..\\ecoaware\\datasets\\Data_training\\Weather_preprocessed.csv", index=False)
+    df.to_csv("..\\datasets\\Weather_preprocessed.csv", index=False)
 
 if __name__ == "__main__":
-    run_preprocessing()
-    
+    run_preprocessing(df)
+
 
 
