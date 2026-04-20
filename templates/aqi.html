@@ -1,104 +1,163 @@
 {% extends "base.html" %}
 
-{% block title %}AQI | EcoAware Delhi{% endblock %}
+{% block title %}AQI Dashboard{% endblock %}
 
 {% block page_head %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='aqi.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='aqi.css') }}">
 {% endblock %}
 
 {% block content %}
-  <main class="page-shell">
-    <div class="container aqi-page">
-      <section class="page-heading">
-        <h1>Delhi AQI Intelligence</h1>
-        <p>
-          Station-wise AQI status with model-backed next-day insight, risk segmentation, and intervention-focused highlights.
-        </p>
-      </section>
+<main class="aqi-bg">
+  <div class="container">
 
-      <section class="grid grid-4">
-        {% for card in aqi_summary_cards %}
-          <article class="card card-strong">
-            <div class="card-title">{{ card.title }}</div>
-            <div class="card-value">{{ card.value }}</div>
-            <p class="card-note">{{ card.note }}</p>
-          </article>
-        {% endfor %}
-      </section>
+    <div class="dashboard">
 
+      <!-- LEFT PANEL -->
       <section class="panel">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">Live Station Table</p>
-            <h2>Latest AQI status by station</h2>
+
+        <!-- ❌ DROPDOWN REMOVED -->
+
+        <!-- LIVE LABEL -->
+        <p class="label">Live &mdash; {{ current_label }}</p>
+
+        <!-- BIG AQI NUMBER -->
+        <div class="big-aqi">{{ current_aqi }}</div>
+
+        <!-- STATUS BADGE -->
+        <div class="aqi-badge {{ current_status | lower | replace(' ', '-') }}">
+          {{ current_status }}
+        </div>
+
+        <!-- AQI SCALE BAR WITH NEEDLE -->
+        <div class="aqi-bar-wrap">
+          <div class="aqi-bar">
+            <div class="aqi-needle"
+                 style="left: {{ [[current_aqi | int / 500 * 100, 100] | min, 0] | max }}%">
+            </div>
+          </div>
+          <div class="aqi-scale-labels">
+            <span>0</span>
+            <span>100</span>
+            <span>200</span>
+            <span>300</span>
+            <span>400</span>
+            <span>500</span>
           </div>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Station</th>
-              <th>Latest AQI</th>
-              <th>Status</th>
-              <th>Latest Date</th>
-              <th>Health Advice</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in station_rows %}
-              <tr>
-                <td>{{ row.station }}</td>
-                <td><strong>{{ row.aqi }}</strong></td>
-                <td>
-                  <span class="aqi-badge {{ row.status_class }}">
-                    <span class="aqi-badge-dot" style="background-color: {{ row.color }};"></span>
-                    {{ row.status }}
-                  </span>
-                </td>
-                <td>{{ row.latest_date }}</td>
-                <td>{{ row.advice }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+
+        <!-- ADVICE -->
+        <div class="info-box">
+          <strong>Health advisory</strong>
+          Air quality is {{ current_status | lower }} today.
+          {% if current_status | lower == "good" %}
+            Ideal conditions — enjoy outdoor activities freely.
+          {% elif current_status | lower == "satisfactory" %}
+            Generally safe. Sensitive individuals may limit strenuous outdoor activity.
+          {% elif current_status | lower == "moderate" %}
+            Sensitive groups should reduce prolonged outdoor exertion.
+          {% elif current_status | lower == "poor" %}
+            Limit outdoor time, especially if you experience symptoms. Wear a mask outdoors.
+          {% elif current_status | lower == "very poor" %}
+            Avoid outdoor exposure. Wear N95 masks if you must go out.
+          {% else %}
+            Emergency conditions. Stay indoors with windows closed. Seek medical help if symptoms arise.
+          {% endif %}
+        </div>
+
       </section>
 
-      <section class="grid grid-4">
-        {% for row in top_hotspots %}
-          <article class="panel hotspot-card">
-            <h2>{{ row.station }}</h2>
-            <p class="hotspot-value">{{ row.aqi }}</p>
-            <p><span class="aqi-badge {{ row.status_class }}">{{ row.status }}</span></p>
-            <p class="muted-text">{{ row.latest_date }}</p>
-          </article>
-        {% endfor %}
-      </section>
+      <!-- RIGHT PANEL -->
+      <section class="panel">
 
-      <section class="grid grid-2">
-        <article class="panel">
-          <h2>AQI category guide</h2>
-          <div class="legend-stack">
-            {% for item in aqi_legend %}
-              <div class="legend-item">
-                <span class="legend-dot" style="background-color: {{ item.color }};"></span>
-                <span><strong>{{ item.label }}</strong> ({{ item.range }})</span>
+        <h2>All Monitoring Stations</h2>
+        <p class="panel-sub">Real-time readings across the city</p>
+
+        <div class="trend-table">
+          {% for row in station_rows %}
+          <div class="trend-row">
+
+            <div class="station-name">{{ row.station }}</div>
+
+            <div class="trend-bar">
+              <div class="trend-fill"
+                   style="width: {{ [[row.aqi / 500 * 100, 100] | min, 0] | max }}%; background: {{ row.color }}">
               </div>
-            {% endfor %}
+            </div>
+
+            <div class="station-value">{{ row.aqi }}</div>
+
+            <div class="station-status {{ row.status | lower | replace(' ', '-') }}">
+              {{ row.status }}
+            </div>
+
           </div>
-        </article>
-        <article class="panel">
-          <h2>Status distribution</h2>
-          <div class="status-cluster">
-            {% for item in status_distribution %}
-              <span class="status-pill">{{ item.status }}: {{ item.count }}</span>
-            {% endfor %}
-          </div>
-        </article>
+          {% endfor %}
+        </div>
+
       </section>
 
-      <section class="panel alert-strip">
-        <h2>Policy trigger suggestion</h2>
-        <p>{{ policy_note }}</p>
-      </section>
     </div>
-  </main>
+
+    <!-- AQI EXPLANATION -->
+    <section class="panel explanation">
+
+      <h2>What the numbers mean</h2>
+      <p class="subtext">AQI is a scale from 0 to 500 — lower is better.</p>
+
+      <div class="legend-grid">
+
+        <div class="legend-item">
+          <span class="dot good"></span>
+          <div>
+            <strong>Good</strong>
+            <span>0 – 50<br>Safe for all outdoor activity</span>
+          </div>
+        </div>
+
+        <div class="legend-item">
+          <span class="dot satisfactory"></span>
+          <div>
+            <strong>Satisfactory</strong>
+            <span>51 – 100<br>Normal activity ok</span>
+          </div>
+        </div>
+
+        <div class="legend-item">
+          <span class="dot moderate"></span>
+          <div>
+            <strong>Moderate</strong>
+            <span>101 – 200<br>Sensitive groups be careful</span>
+          </div>
+        </div>
+
+        <div class="legend-item">
+          <span class="dot poor"></span>
+          <div>
+            <strong>Poor</strong>
+            <span>201 – 300<br>Limit outdoor time</span>
+          </div>
+        </div>
+
+        <div class="legend-item">
+          <span class="dot very-poor"></span>
+          <div>
+            <strong>Very Poor</strong>
+            <span>301 – 400<br>Avoid outdoor exposure</span>
+          </div>
+        </div>
+
+        <div class="legend-item">
+          <span class="dot severe"></span>
+          <div>
+            <strong>Severe</strong>
+            <span>401+<br>Emergency conditions</span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+</main>
 {% endblock %}

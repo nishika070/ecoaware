@@ -559,52 +559,42 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     }
 
 
-def get_aqi_page_context() -> dict[str, Any]:
+def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
     station_rows = get_station_latest_table()
-    top_hotspots = station_rows[:4]
-    prediction = build_prediction_payload()
-    avg_aqi = round(sum(row["aqi"] for row in station_rows) / len(station_rows), 1) if station_rows else 0
-    cleanest_station = station_rows[-1] if station_rows else None
 
-    status_counts: dict[str, int] = {}
-    for row in station_rows:
-        status_counts[row["status"]] = status_counts.get(row["status"], 0) + 1
+    # DEFAULT → city average
+    if selected_station is None or selected_station == "all":
+        current_aqi = round(sum(row["aqi"] for row in station_rows) / len(station_rows), 1)
+
+        current_status = classify_aqi(current_aqi)   # for badge ✅
+        current_label = "City Average"               # for LIVE text ✅
+
+        selected_station = "all"
+
+    else:
+        selected = next((s for s in station_rows if s["station"] == selected_station), None)
+
+        if selected:
+            current_aqi = selected["aqi"]
+            current_status = selected["status"]
+            current_label = selected["station"]     # show station name
+        else:
+            current_aqi = 0
+            current_status = "Unavailable"
+            current_label = "Unknown"
 
     return {
         "station_rows": station_rows,
+        "selected_station": selected_station,
+        "current_aqi": current_aqi,
+        "current_status": current_status,   # badge
+        "current_label": current_label,     # LIVE text ✅
+
         "policy_note": (
-            f"{top_hotspots[0]['station']} and {top_hotspots[1]['station']} are currently the highest-pressure stations "
-            "in the latest available dataset window."
-            if len(top_hotspots) > 1
-            else "Latest AQI records are available from your Delhi dataset."
+            f"{station_rows[0]['station']} currently has the highest AQI."
+            if station_rows else "No AQI data available."
         ),
-        "top_hotspots": top_hotspots,
-        "aqi_summary_cards": [
-            {
-                "title": "Citywide Average AQI",
-                "value": avg_aqi,
-                "note": "Average across latest station observations",
-            },
-            {
-                "title": "Tomorrow AQI Prediction",
-                "value": prediction["tomorrow"],
-                "note": f"{prediction['model_name']} forecast model",
-            },
-            {
-                "title": "Predicted Risk",
-                "value": prediction["category"],
-                "note": prediction["advice"],
-            },
-            {
-                "title": "Cleanest Station",
-                "value": cleanest_station["station"] if cleanest_station else "Unavailable",
-                "note": f"AQI {cleanest_station['aqi']}" if cleanest_station else "No data",
-            },
-        ],
-        "status_distribution": [
-            {"status": status, "count": count}
-            for status, count in status_counts.items()
-        ],
+
         "aqi_legend": [
             {"range": "0-50", "label": "Good", "color": "#2e9f57"},
             {"range": "51-100", "label": "Satisfactory", "color": "#8abf2f"},
@@ -614,7 +604,6 @@ def get_aqi_page_context() -> dict[str, Any]:
             {"range": "401+", "label": "Severe", "color": "#7a0019"},
         ],
     }
-
 
 def get_temperature_page_context(selected_station: str | None = None) -> dict[str, Any]:
     available_stations = get_available_stations()
