@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 import joblib
+from sklearn.impute import KNNImputer
 
 #load and reshape data
 def load_and_merge_data(folder_path):
@@ -12,27 +13,36 @@ def load_and_merge_data(folder_path):
             file_path = os.path.join(folder_path, file)
 
             try:
-                df = pd.read_excel(file_path)
+                # Read ONLY first 32 rows (including header), ignore everything after
+                df = pd.read_excel(file_path, nrows=32)
                 df.columns = df.columns.str.strip()
 
-                #Convert wide → long format
+                # Convert wide → long format
                 df = df.melt(id_vars=["Date"], var_name="Month", value_name="AQI")
 
-                #Extract year & location from filename
+                # Extract year & location from filename
                 parts = file.split("_")
                 df["year"] = int(parts[2]) if len(parts) > 2 else 0
                 df["location"] = parts[3] if len(parts) > 3 else "unknown"
 
+                # Remove any rows with invalid AQI values (extra junk)
+                # df = df.dropna(subset=['AQI'])
+                df = df[df['AQI'] >= 0]  # AQI can't be negative
+
                 dataframes.append(df)
 
-            except:
+            except Exception as e:
                 continue
 
-    return pd.concat(dataframes, ignore_index=True)
+    merged_df = pd.concat(dataframes, ignore_index=True)
+    #print(f"Merged {len(dataframes)} files into {merged_df.shape[0]} rows")
+    return merged_df
 
 #clean data
 def clean_data(df):
-    df = df.dropna(subset=["AQI"])
+    imputer = KNNImputer(n_neighbors=5)
+    aqi_imputed = imputer.fit_transform(df[["AQI"]]).flatten()
+    df["AQI"] = aqi_imputed
     return df
 
 #create day of year--instead of day+month 
@@ -47,7 +57,6 @@ def process_date(df):
 
     df["day_of_year"] = df["full_date"].dt.dayofyear
     df = df.drop(columns=["Date", "Month", "full_date"])
-
     return df
 
 #encode location
@@ -76,20 +85,6 @@ def scale_data(X):
     joblib.dump(scaler, "../models/data_scaler_aqi.pkl")
     return pd.DataFrame(X_scaled, columns=X.columns)
 
-#data preparing--all data for training 
-def prepare_data(df):
-    X = df[["day_of_year", "year", "location"]]
-    y = df["AQI"]
-
-    X = scale_data(X)
-
-    return X, y
-
-#save data
-def save_full_data(X, y, output_path):
-    X.to_csv(os.path.join(output_path, "AQI_X.csv"), index=False)
-    y.to_csv(os.path.join(output_path, "AQI_y.csv"), index=False)
-
 #main 
 def run_preprocessing():
     folder_path = "../datasets/Data_training"
@@ -100,9 +95,8 @@ def run_preprocessing():
     df = process_date(df)
     df = encode_data(df)
     df = handle_outliers(df)
-
-    X, y = prepare_data(df)
-    save_full_data(X, y, output_path)
+    df = scale_data(df)
+    df.to_csv(os.path.join(output_path, "AQI_preprocessed.csv"), index=False)
 
 
 if __name__ == "__main__":
