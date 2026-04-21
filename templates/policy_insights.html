@@ -115,11 +115,15 @@
             <p>{{ month_focus_note }}</p>
           </div>
           <div class="chart-wrap">
+            {% if show_temperature_charts %}
             <canvas id="temperatureMonthlyChart"
               role="img"
               aria-label="Bar chart of average temperature for {{ month_focus_label }} across years">
               Year-wise average temperature for {{ month_focus_label }}.
             </canvas>
+            {% else %}
+            <div class="chart-warning" role="note">{{ temperature_chart_warning }}</div>
+            {% endif %}
           </div>
         </article>
 
@@ -130,11 +134,15 @@
             <p>{{ last_30_days_note }}</p>
           </div>
           <div class="chart-wrap">
+            {% if show_temperature_charts %}
             <canvas id="temperature30DaysChart"
               role="img"
               aria-label="Line chart of daily temperature readings over the last 30 days">
               Daily temperature trend over the past 30 days.
             </canvas>
+            {% else %}
+            <div class="chart-warning" role="note">{{ temperature_chart_warning }}</div>
+            {% endif %}
           </div>
         </article>
       </div>
@@ -370,6 +378,7 @@
     }
 
     /* ── 1. Temperature — year-wise monthly (bar) ─────────── */
+    if ({{ show_temperature_charts | tojson }}) {
     buildChart("temperatureMonthlyChart", {
       type:            "bar",
       labels:          {{ temp_monthly_labels | tojson }},
@@ -388,6 +397,7 @@
       borderColor:     "#d98d3c",
       backgroundColor: "rgba(217, 141, 60, 0.15)"
     });
+    }
 
     /* ── 3. AQI — year-wise monthly (bar) ─────────────────── */
     buildChart("aqiMonthlyChart", {

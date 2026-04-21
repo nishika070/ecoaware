@@ -53,6 +53,9 @@ class AqiPredictionBundle:
     latest_date: str
     model_name: str
     station_count: int
+    history_labels: list[str] = None
+    history_values: list[int] = None
+    temperature: float | None = None
 
 
 # ============================================================================
@@ -206,6 +209,38 @@ def get_status_class(aqi: float) -> str:
         return "status-severe"
 
 
+def classify_aqi(aqi: float) -> str:
+    """Classify AQI value into categories"""
+    if aqi <= 50:
+        return "Good"
+    elif aqi <= 100:
+        return "Satisfactory"
+    elif aqi <= 200:
+        return "Moderate"
+    elif aqi <= 300:
+        return "Poor"
+    elif aqi <= 400:
+        return "Very Poor"
+    else:
+        return "Severe"
+
+
+def advice_for_aqi(aqi: float) -> str:
+    """Get health advice for AQI value"""
+    if aqi <= 50:
+        return "Outdoor activity is generally safe."
+    elif aqi <= 100:
+        return "Sensitive groups should reduce prolonged exertion."
+    elif aqi <= 200:
+        return "Limit prolonged outdoor activity and keep masks ready."
+    elif aqi <= 300:
+        return "Avoid intense outdoor activity, especially for children and elderly."
+    elif aqi <= 400:
+        return "Stay indoors when possible; use air filtration if available."
+    else:
+        return "Avoid outdoor exposure; follow high-risk emergency precautions."
+
+
 # ============================================================================
 # MODEL LOADING
 # ============================================================================
@@ -274,17 +309,7 @@ def load_scaled_data() -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def get_available_stations() -> list[str]:
-    """Get list of all available monitoring stations"""
-    try:
-        df = load_aqi_data()
-        if 'Location' in df.columns:
-            stations = sorted(df['Location'].unique().tolist())
-            return [format_station_name(s) for s in stations]
-        return []
-    except Exception as e:
-        print(f"✗ Error getting stations: {str(e)}")
-        return []
+
 
 
 # ============================================================================
@@ -335,316 +360,17 @@ def predict_aqi(X_features: np.ndarray) -> tuple[float, float]:
         return 200.0, 3
 
 
-def build_prediction_payload() -> AqiPredictionBundle:
-    """
-    Build prediction payload for current conditions.
-    
-    Returns:
-        AqiPredictionBundle with predictions and metadata
-    """
-    try:
-        df_scaled = load_scaled_data()
-        
-        if df_scaled.empty:
-            return AqiPredictionBundle(
-                today=200, tomorrow=210, advice="Data unavailable",
-                category="Unknown", policy_level=3, 
-                policy_action="Check data sources",
-                health_suggestion="Consult authorities",
-                latest_date="Unknown",
-                model_name="No Model", station_count=0
-            )
-        
-        # Use latest data point for features
-        latest_features = df_scaled.iloc[-1][['YEAR', 'DOY', 'T2M', 'T2M_MAX', 'T2M_MIN', 
-                                               'RH2M', 'PRECTOTCORR', 'WS10M', 'WS10M_MAX', 
-                                               'WS10M_MIN', 'PS', 'LOC', 'hasSprinkler', 
-                                               'isIndustrial']].values
-        
-        # Make prediction
-        aqi_pred, policy_level = predict_aqi(latest_features)
-        
-        # Get suggestions
-        health_suggestion = get_health_suggestion(aqi_pred)
-        policy_action = get_policy_action(aqi_pred)
-        category = aqi_to_category(aqi_pred)
-        
-        # Get station count
-        df = load_aqi_data()
-        station_count = df['Location'].nunique() if 'Location' in df.columns else 20
-        
-        # Get latest date
-        latest_date = "Unknown"
-        if not df.empty and 'YEAR' in df.columns and 'DOY' in df.columns:
-            try:
-                last_year = int(df['YEAR'].iloc[-1])
-                last_doy = int(df['DOY'].iloc[-1])
-                latest_date = f"{last_year}-{int(last_doy)}"
-            except:
-                pass
-        
-        return AqiPredictionBundle(
-            today=int(aqi_pred),
-            tomorrow=int(aqi_pred + 10),  # Simple prediction: +10 for tomorrow
-            advice=health_suggestion,
-            category=category,
-            policy_level=policy_level,
-            policy_action=policy_action,
-            health_suggestion=health_suggestion,
-            latest_date=latest_date,
-            model_name="Random Forest + Decision Tree",
-            station_count=station_count
-        )
-        
-    except Exception as e:
-        print(f"✗ Error building prediction: {str(e)}")
-        return AqiPredictionBundle(
-            today=200, tomorrow=210, advice="Error",
-            category="Unknown", policy_level=3, 
-            policy_action="Error occurred",
-            health_suggestion="Error occurred",
-            latest_date="Error",
-            model_name="Error", station_count=0
-        )
-
-
 # ============================================================================
 # CONTEXT BUILDERS FOR TEMPLATES
 # ============================================================================
 
-def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
-    """Build context for home page"""
-    available_stations = get_available_stations()
-    station_name = selected_station if selected_station in available_stations else (available_stations[0] if available_stations else "Delhi")
-    
-    city_payload = build_prediction_payload()
-    
-    station_coordinates = STATION_COORDINATES.get(station_name, {"lat": 28.7041, "lng": 77.1025})
-    weather = get_station_weather_snapshot(
-        station_name,
-        station_coordinates.get("lat"),
-        station_coordinates.get("lng"),
-    )
-    
-    current_weather = weather.get("current", {})
-    today_forecast = weather.get("forecast_days", [{}])[0] if weather.get("forecast_days") else {}
-    
-    return {
-        "stations": available_stations,
-        "selected_station": station_name,
-        "home_weather": current_weather,
-        "today_forecast": today_forecast,
-        "aqi_prediction": city_payload,
-        "primary_metrics": [
-            {
-                "title": "AQI",
-                "value": city_payload.today,
-                "note": f"Predicted AQI - {city_payload.category}"
-            },
-            {
-                "title": "Health Advisory",
-                "value": city_payload.category,
-                "note": city_payload.health_suggestion
-            },
-            {
-                "title": "Policy Level",
-                "value": city_payload.policy_level,
-                "note": city_payload.policy_action
-            },
-        ],
-    }
 
 
-def get_aqi_page_context(station: str = "all") -> dict[str, Any]:
-    """Build context for AQI page"""
-    payload = build_prediction_payload()
-    
-    available_stations = get_available_stations()
-    
-    return {
-        "stations": available_stations,
-        "selected_station": station,
-        "aqi_prediction": payload,
-        "category": payload.category,
-        "aqi_value": payload.today,
-        "health_advice": payload.health_suggestion,
-        "policy_recommendation": payload.policy_action,
-        "policy_level": payload.policy_level,
-        "color": get_aqi_color(float(payload.today)),
-        "status_class": get_status_class(float(payload.today)),
-    }
 
 
-def get_policies_page_context() -> dict[str, Any]:
-    """Build context for policies page"""
-    payload = build_prediction_payload()
-    
-    # Map policy levels with descriptions
-    policy_details = []
-    for level in range(7):
-        action = POLICY_ACTIONS.get(level, "Unknown")
-        policy_details.append({
-            "level": level,
-            "action": action,
-            "active": level == payload.policy_level
-        })
-    
-    return {
-        "aqi_prediction": payload,
-        "current_policy_level": payload.policy_level,
-        "current_policy_action": payload.policy_action,
-        "policies": policy_details,
-    }
 
 
-def get_contact_page_context() -> dict[str, Any]:
-    """Build context for contact page"""
-    return {
-        "title": "Contact Us",
-    }
 
-
-@lru_cache(maxsize=1)
-def load_daily_aqi() -> pd.DataFrame:
-    station_daily = load_station_daily_aqi()
-    daily = (
-        station_daily.groupby("date", as_index=False)
-        .agg(
-            avg_aqi=("aqi", "mean"),
-            station_count=("station", "nunique"),
-        )
-        .sort_values("date")
-        .reset_index(drop=True)
-    )
-
-    daily["avg_aqi"] = daily["avg_aqi"].round(2)
-    return daily
-
-
-@lru_cache(maxsize=1)
-def load_station_daily_aqi() -> pd.DataFrame:
-    raw = pd.read_csv(DATASET_PATH)
-
-    long_frame = raw.melt(
-        id_vars=["Date", "station", "year"],
-        value_vars=MONTH_COLUMNS,
-        var_name="month_name",
-        value_name="aqi",
-    )
-
-    long_frame["aqi"] = pd.to_numeric(long_frame["aqi"], errors="coerce")
-    long_frame["day"] = pd.to_numeric(long_frame["Date"], errors="coerce")
-    long_frame["year"] = pd.to_numeric(long_frame["year"], errors="coerce")
-    long_frame["month"] = long_frame["month_name"].map(MONTH_TO_NUMBER)
-
-    long_frame = long_frame.dropna(subset=["aqi", "day", "month", "year"]).copy()
-    long_frame["day"] = long_frame["day"].astype(int)
-    long_frame["year"] = long_frame["year"].astype(int)
-    long_frame["month"] = long_frame["month"].astype(int)
-
-    long_frame["date"] = pd.to_datetime(
-        {
-            "year": long_frame["year"],
-            "month": long_frame["month"],
-            "day": long_frame["day"],
-        },
-        errors="coerce",
-    )
-
-    long_frame = long_frame.dropna(subset=["date"]).copy()
-    long_frame["display_station"] = long_frame["station"].apply(format_station_name)
-    long_frame["aqi"] = long_frame["aqi"].round(2)
-    return long_frame.sort_values(["display_station", "date"]).reset_index(drop=True)
-
-
-def build_training_frame(daily: pd.DataFrame) -> pd.DataFrame:
-    frame = daily.copy()
-
-    frame["lag_1"] = frame["avg_aqi"].shift(1)
-    frame["lag_2"] = frame["avg_aqi"].shift(2)
-    frame["lag_3"] = frame["avg_aqi"].shift(3)
-    frame["lag_7"] = frame["avg_aqi"].shift(7)
-    frame["rolling_mean_3"] = frame["avg_aqi"].shift(1).rolling(3).mean()
-    frame["rolling_mean_7"] = frame["avg_aqi"].shift(1).rolling(7).mean()
-    frame["month"] = frame["date"].dt.month
-    frame["day"] = frame["date"].dt.day
-    frame["day_of_week"] = frame["date"].dt.dayofweek
-    frame["day_of_year"] = frame["date"].dt.dayofyear
-    frame["target"] = frame["avg_aqi"].shift(-1)
-
-    frame = frame.dropna().reset_index(drop=True)
-    return frame
-
-
-def get_feature_columns() -> list[str]:
-    return [
-        "lag_1",
-        "lag_2",
-        "lag_3",
-        "lag_7",
-        "rolling_mean_3",
-        "rolling_mean_7",
-        "month",
-        "day",
-        "day_of_week",
-        "day_of_year",
-    ]
-
-
-def classify_aqi(aqi: float) -> str:
-    if aqi <= 50:
-        return "Good"
-    if aqi <= 100:
-        return "Satisfactory"
-    if aqi <= 200:
-        return "Moderate"
-    if aqi <= 300:
-        return "Poor"
-    if aqi <= 400:
-        return "Very Poor"
-    return "Severe"
-
-
-def advice_for_aqi(aqi: float) -> str:
-    if aqi <= 50:
-        return "Outdoor activity is generally safe."
-    if aqi <= 100:
-        return "Sensitive groups should reduce prolonged exertion."
-    if aqi <= 200:
-        return "Limit prolonged outdoor activity and keep masks ready."
-    if aqi <= 300:
-        return "Avoid intense outdoor activity, especially for children and elderly."
-    if aqi <= 400:
-        return "Stay indoors when possible; use air filtration if available."
-    return "Avoid outdoor exposure; follow high-risk emergency precautions."
-
-
-def get_aqi_color(aqi: float) -> str:
-    if aqi <= 50:
-        return "#2e9f57"
-    if aqi <= 100:
-        return "#8abf2f"
-    if aqi <= 200:
-        return "#d2a819"
-    if aqi <= 300:
-        return "#e67e22"
-    if aqi <= 400:
-        return "#d55353"
-    return "#7a0019"
-
-
-def get_status_class(aqi: float) -> str:
-    if aqi <= 50:
-        return "status-good"
-    if aqi <= 100:
-        return "status-satisfactory"
-    if aqi <= 200:
-        return "status-moderate"
-    if aqi <= 300:
-        return "status-poor"
-    if aqi <= 400:
-        return "status-very-poor"
-    return "status-severe"
 
 
 def get_relative_spread_color(aqi: float, min_aqi: float, max_aqi: float) -> str:
@@ -684,6 +410,15 @@ def get_available_stations() -> list[str]:
     return sorted(station_daily["display_station"].unique().tolist())
 
 
+def resolve_station_name(selected_station: str | None = None) -> str | None:
+    available_stations = get_available_stations()
+    if not available_stations:
+        return None
+    if selected_station in available_stations:
+        return selected_station
+    return available_stations[0]
+
+
 def get_station_series(station_name: str) -> pd.DataFrame:
     station_daily = load_station_daily_aqi()
     station_series = (
@@ -693,7 +428,9 @@ def get_station_series(station_name: str) -> pd.DataFrame:
     )
 
     if station_series.empty:
-        fallback_station = get_available_stations()[0]
+        fallback_station = resolve_station_name()
+        if fallback_station is None:
+            return station_series
         station_series = (
             station_daily[station_daily["display_station"] == fallback_station]
             .sort_values("date")
@@ -750,16 +487,31 @@ def get_monthly_pattern() -> list[dict[str, Any]]:
 
 def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     available_stations = get_available_stations()
-    station_name = selected_station if selected_station in available_stations else available_stations[0]
+    station_name = resolve_station_name(selected_station)
 
     city_payload = build_prediction_payload()
-    station_series = get_station_series(station_name)
-    latest_station = station_series.iloc[-1]
-    history = station_series.tail(7)
     station_rows = get_station_latest_table()
     hotspot_markers = []
+    map_min_aqi = min((row["aqi"] for row in station_rows), default=0)
+    map_max_aqi = max((row["aqi"] for row in station_rows), default=0)
 
-    latest_station_aqi = float(latest_station["aqi"])
+    if station_name is None:
+        station_name = selected_station or "No station data"
+        station_series = pd.DataFrame(columns=["date", "aqi"])
+        history = station_series.tail(7)
+        latest_station_aqi = float(city_payload["today"])
+        latest_station_date = city_payload["latest_date"]
+    else:
+        station_series = get_station_series(station_name)
+        history = station_series.tail(7)
+        if station_series.empty:
+            latest_station_aqi = float(city_payload["today"])
+            latest_station_date = city_payload["latest_date"]
+        else:
+            latest_station = station_series.iloc[-1]
+            latest_station_aqi = float(latest_station["aqi"])
+            latest_station_date = latest_station["date"].strftime("%d %b %Y")
+
     station_coordinates = STATION_COORDINATES.get(station_name, {})
     weather = get_station_weather_snapshot(
         station_name,
@@ -774,8 +526,6 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
 
     live_us_aqi = air_quality.get("us_aqi")
     today_forecast = forecast_days[0] if forecast_days else {}
-    map_min_aqi = min((row["aqi"] for row in station_rows), default=0)
-    map_max_aqi = max((row["aqi"] for row in station_rows), default=0)
 
     for row in station_rows:
         coordinates = STATION_COORDINATES.get(row["station"])
@@ -832,7 +582,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
                 "note": (
                     "Live US AQI from Open-Meteo"
                     if live_us_aqi is not None
-                    else f"Dataset AQI on {latest_station['date'].strftime('%d %b %Y')}"
+                    else f"Dataset AQI on {latest_station_date}"
                 ),
             },
             {
@@ -952,7 +702,7 @@ def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
 
     # DEFAULT → city average
     if selected_station is None or selected_station == "all":
-        current_aqi = round(sum(row["aqi"] for row in station_rows) / len(station_rows), 1)
+        current_aqi = round(sum(row["aqi"] for row in station_rows) / len(station_rows), 1) if station_rows else 0
 
         current_status = classify_aqi(current_aqi)   # for badge ✅
         current_label = "City Average"               # for LIVE text ✅
@@ -995,7 +745,7 @@ def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
 
 def get_temperature_page_context(selected_station: str | None = None) -> dict[str, Any]:
     available_stations = get_available_stations()
-    station_name = selected_station if selected_station in available_stations else available_stations[0]
+    station_name = resolve_station_name(selected_station) or (selected_station or "No station data")
     station_coordinates = STATION_COORDINATES.get(station_name, {})
     weather = get_station_weather_snapshot(
         station_name,
@@ -1044,57 +794,6 @@ def get_temperature_page_context(selected_station: str | None = None) -> dict[st
     }
 
 
-def get_policies_page_context() -> dict[str, Any]:
-    station_rows = get_station_latest_table()
-    monthly_pattern = get_monthly_pattern()
-    worst_month = max(monthly_pattern, key=lambda item: item["aqi"])
-    top_three = station_rows[:3]
-    prediction = build_prediction_payload()
-
-    policy_items = [
-        {
-            "title": "Construction intensity tracker",
-            "detail": f"Prioritize dust checks near {top_three[0]['station']} because it currently shows the highest AQI pressure.",
-        },
-        {
-            "title": "Industrial hotspot index",
-            "detail": f"Latest station ranking highlights {top_three[1]['station']} as another intervention zone for emission inspections.",
-        },
-        {
-            "title": "Seasonal burden window",
-            "detail": f"{worst_month['month']} has the highest mean AQI in the dataset, so preparedness campaigns should intensify before that cycle.",
-        },
-        {
-            "title": "ML health suggestion engine",
-            "detail": (
-                f"{prediction['model_name']} predicts next-day Delhi AQI near {prediction['tomorrow']} "
-                f"({prediction['category']}). Suggested public guidance: {prediction['advice']}"
-            ),
-        },
-    ]
-
-    hotspot_cards = [
-        {
-            "name": row["station"],
-            "aqi": row["aqi"],
-            "status": row["status"],
-            "date": row["latest_date"],
-            "status_class": row["status_class"],
-        }
-        for row in top_three
-    ]
-
-    return {
-        "policy_items": policy_items,
-        "hotspot_cards": hotspot_cards,
-        "model_summary": {
-            "model_name": prediction["model_name"],
-            "tomorrow": prediction["tomorrow"],
-            "category": prediction["category"],
-            "advice": prediction["advice"],
-            "latest_date": prediction["latest_date"],
-        },
-    }
 
 
 def get_contact_page_context() -> dict[str, Any]:
@@ -1127,44 +826,6 @@ def get_contact_page_context() -> dict[str, Any]:
     }
 
 
-def build_prediction_payload() -> dict[str, Any]:
-    daily = load_daily_aqi()
-    model, model_name = load_or_train_model()
-    feature_columns = get_feature_columns()
-
-    latest_window = build_training_frame(daily).iloc[-1].copy()
-    feature_values = latest_window[feature_columns].to_frame().T
-    predicted_tomorrow = float(model.predict(feature_values)[0])
-
-    today_value = float(daily.iloc[-1]["avg_aqi"])
-    latest_date = daily.iloc[-1]["date"]
-    history = daily.tail(7).copy()
-
-    bundle = AqiPredictionBundle(
-        today=max(0, round(today_value)),
-        tomorrow=max(0, round(predicted_tomorrow)),
-        advice=advice_for_aqi(predicted_tomorrow),
-        category=classify_aqi(predicted_tomorrow),
-        latest_date=latest_date.strftime("%Y-%m-%d"),
-        history_labels=history["date"].dt.strftime("%d %b").tolist(),
-        history_values=history["avg_aqi"].round().astype(int).tolist(),
-        temperature=None,
-        model_name=model_name,
-        station_count=int(daily.iloc[-1]["station_count"]),
-    )
-
-    return {
-        "today": bundle.today,
-        "tomorrow": bundle.tomorrow,
-        "advice": bundle.advice,
-        "category": bundle.category,
-        "latest_date": bundle.latest_date,
-        "history_labels": bundle.history_labels,
-        "history_values": bundle.history_values,
-        "temperature": bundle.temperature,
-        "model_name": bundle.model_name,
-        "station_count": bundle.station_count,
-    }
 
 
 # ============================================================================
@@ -1206,6 +867,7 @@ def _safe_int(value: Any) -> int | None:
 @lru_cache(maxsize=1)
 def load_station_daily_aqi() -> pd.DataFrame:
     raw = pd.read_csv(DATASET_PATH)
+    raw.columns = raw.columns.str.strip()
     required_columns = ["YEAR", "DOY", "T2M", "AQI", "Location"]
     available_columns = [column for column in required_columns if column in raw.columns]
 
@@ -1437,6 +1099,23 @@ def _build_last_30_days_series(daily: pd.DataFrame, value_column: str) -> tuple[
     return recent["date"].dt.strftime("%d %b").tolist(), recent[value_column].round(1).tolist()
 
 
+def _temperature_history_looks_unreliable(daily: pd.DataFrame) -> bool:
+    if daily.empty or "avg_temp" not in daily:
+        return True
+
+    temps = pd.to_numeric(daily["avg_temp"], errors="coerce").dropna()
+    if temps.empty:
+        return True
+
+    # Delhi-wide daily means should regularly exceed 20 C in warmer months.
+    # If the full series stays in a much colder range, the imported history is mismatched.
+    return bool(
+        temps.max() < 15
+        or temps.mean() < 10
+        or temps.quantile(0.9) < 18
+    )
+
+
 def _temperature_policy_items(current_temp: float | None, baseline_temp: float | None) -> list[str]:
     if current_temp is None:
         return [
@@ -1594,9 +1273,13 @@ def get_policies_page_context() -> dict[str, Any]:
     current_weather = weather.get("current", {})
 
     live_temp = _safe_float(current_weather.get("temperature_c"))
-    current_temperature = live_temp if live_temp is not None else _safe_float(daily.iloc[-1]["avg_temp"]) if not daily.empty else None
+    dataset_temperature = _safe_float(daily.iloc[-1]["avg_temp"]) if not daily.empty else None
+    current_temperature = live_temp if live_temp is not None else dataset_temperature
     current_aqi = float(prediction["today"])
     predicted_aqi = float(prediction["tomorrow"])
+    temperature_history_unreliable = _temperature_history_looks_unreliable(daily)
+    if temperature_history_unreliable and live_temp is None:
+        current_temperature = None
 
     focus_month_number, focus_month_label = _month_focus(daily)
     temp_monthly_labels, temp_monthly_data = _build_monthly_chart_series(daily, "avg_temp", focus_month_number)
@@ -1607,10 +1290,14 @@ def get_policies_page_context() -> dict[str, Any]:
     month_slice = daily[daily["date"].dt.month == focus_month_number]
     month_temp_avg = _safe_float(month_slice["avg_temp"].mean()) if not month_slice.empty else None
     month_aqi_avg = _safe_float(month_slice["avg_aqi"].mean()) if not month_slice.empty else None
+    if temperature_history_unreliable:
+        month_temp_avg = None
 
     temperature_note = (
         f"Live weather from {station_name}"
         if live_temp is not None
+        else "Historical temperature dataset needs refresh"
+        if temperature_history_unreliable
         else "Using latest dataset city average temperature"
     )
     temperature_insight = (
@@ -1618,6 +1305,12 @@ def get_policies_page_context() -> dict[str, Any]:
         if current_temperature is not None and month_temp_avg is not None
         else "Temperature insight will sharpen as more daily records accumulate."
     )
+    if temperature_history_unreliable:
+        temperature_insight = (
+            f"Current live temperature is about {current_temperature:.1f} C."
+            if current_temperature is not None
+            else "Historical temperature data needs to be refreshed before a reliable city baseline can be shown."
+        )
     aqi_insight = (
         f"City AQI is {int(round(current_aqi))}, with next-day forecast near {int(round(predicted_aqi))}."
     )
@@ -1625,6 +1318,15 @@ def get_policies_page_context() -> dict[str, Any]:
     general_recommendation = (
         "Combine hotspot inspections with public advisories so response stays proactive rather than reactive."
     )
+    temperature_chart_warning = (
+        "Historical temperature charts are hidden because the imported weather dataset does not line up with Delhi conditions. "
+        "Refresh the NASA POWER source with the correct Delhi coordinates and regenerate the merged dataset to show real Celsius values."
+        if temperature_history_unreliable
+        else ""
+    )
+    if temperature_history_unreliable:
+        temp_monthly_labels, temp_monthly_data = [], []
+        temp_30days_labels, temp_30days_data = [], []
 
     return {
         "current_temperature": format_number(current_temperature) if current_temperature is not None else "Unavailable",
@@ -1640,9 +1342,15 @@ def get_policies_page_context() -> dict[str, Any]:
         "forecast_model_name": accuracy_bundle.get("model_name", prediction["model_name"]),
         "month_focus_label": focus_month_label,
         "month_focus_note": (
+            temperature_chart_warning
+            if temperature_history_unreliable
+            else
             f"Per-year average for {focus_month_label}. If that month is sparse in any year, the chart uses the available records for that year."
         ),
         "last_30_days_note": (
+            temperature_chart_warning
+            if temperature_history_unreliable
+            else
             f"Showing the latest {len(temp_30days_labels)} daily records. This auto-expands as new data is added."
         ),
         "temperature_policy_title": "Temperature policy suggestions",
@@ -1650,7 +1358,9 @@ def get_policies_page_context() -> dict[str, Any]:
         "temperature_policy_items": _temperature_policy_items(current_temperature, month_temp_avg),
         "temperature_health_title": "Temperature health suggestions",
         "temperature_health_summary": (
-            "Daily comfort and heat-risk guidance based on current conditions and seasonal baseline."
+            "Daily comfort and heat-risk guidance based on current conditions."
+            if temperature_history_unreliable
+            else "Daily comfort and heat-risk guidance based on current conditions and seasonal baseline."
         ),
         "temperature_health_items": _temperature_health_items(current_temperature, month_temp_avg),
         "aqi_policy_title": "AQI policy suggestions",
@@ -1683,4 +1393,6 @@ def get_policies_page_context() -> dict[str, Any]:
         "top_station_name": latest_station_row["station"],
         "top_station_aqi": latest_station_row["aqi"],
         "top_station_status": latest_station_row["status"],
+        "show_temperature_charts": not temperature_history_unreliable,
+        "temperature_chart_warning": temperature_chart_warning,
     }

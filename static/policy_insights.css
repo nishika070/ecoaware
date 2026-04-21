@@ -294,6 +294,19 @@ body {
   min-height: 260px;
 }
 
+.chart-warning {
+  display: grid;
+  place-items: center;
+  min-height: 260px;
+  padding: 24px;
+  border: 1px dashed rgba(201, 107, 44, 0.45);
+  border-radius: 20px;
+  background: rgba(201, 107, 44, 0.08);
+  color: var(--policy-muted);
+  line-height: 1.7;
+  text-align: center;
+}
+
 /* ── accuracy section ───────────────────────────────────── */
 .accuracy-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
