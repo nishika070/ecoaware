@@ -1,0 +1,477 @@
+/* ============================================================
+   policy_insights.css  —  EcoAware · Policy Insights dashboard
+   ============================================================ */
+
+:root {
+  --policy-ink: #19342f;
+  --policy-muted: #5c746d;
+  --policy-line: rgba(25, 52, 47, 0.12);
+  --policy-surface: rgba(251, 248, 239, 0.92);
+  --policy-card: rgba(255, 253, 247, 0.94);
+  --policy-accent: #2f6f62;
+  --policy-accent-deep: #224d44;
+  --policy-warm: #c96b2c;
+  --policy-alert: #a14538;
+  --policy-safe: #49774d;
+  --policy-shadow: 0 22px 45px rgba(23, 46, 42, 0.12);
+  --policy-radius: 28px;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(233, 196, 106, 0.22), transparent 28%),
+    radial-gradient(circle at top right, rgba(88, 131, 120, 0.18), transparent 24%),
+    linear-gradient(180deg, #f5efe2 0%, #eef2ea 46%, #f9f7f0 100%);
+}
+
+/* ── page wrapper ───────────────────────────────────────── */
+.policy-insights-page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 32px 20px 56px;
+  color: var(--policy-ink);
+}
+
+.policy-hero,
+.summary-strip,
+.insight-section,
+.accuracy-section,
+.accuracy-panel,
+.closing-note {
+  position: relative;
+}
+
+/* ── hero ───────────────────────────────────────────────── */
+.policy-hero {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 24px;
+  padding: 34px;
+  border-radius: 34px;
+  background:
+    linear-gradient(135deg, rgba(24, 52, 47, 0.94), rgba(49, 94, 83, 0.88)),
+    linear-gradient(135deg, #173630, #2f665d);
+  box-shadow: var(--policy-shadow);
+  overflow: hidden;
+}
+
+.policy-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -10% -20% auto;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(233, 196, 106, 0.12);
+  filter: blur(10px);
+}
+
+.hero-copy,
+.hero-metrics {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── typography helpers ─────────────────────────────────── */
+.eyebrow,
+.section-kicker,
+.chart-kicker,
+.summary-label,
+.meta-label {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.eyebrow,
+.policy-hero .metric-label,
+.policy-hero .metric-note {
+  color: rgba(247, 242, 229, 0.78);
+}
+
+.hero-copy h1 {
+  margin: 0;
+  max-width: 12ch;
+  color: #fffaf0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 0.95;
+}
+
+.hero-text {
+  max-width: 58ch;
+  margin: 18px 0 0;
+  color: rgba(255, 249, 238, 0.86);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+/* ── metric cards (inside hero) ─────────────────────────── */
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metric-card,
+.summary-card,
+.insight-panel,
+.chart-card,
+.accuracy-card,
+.accuracy-panel,
+.closing-note {
+  background: var(--policy-card);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: var(--policy-shadow);
+}
+
+.metric-card {
+  padding: 18px;
+  border-radius: 22px;
+  backdrop-filter: blur(10px);
+}
+
+.metric-card h2 {
+  margin: 0 0 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+  color: #fff8ea;
+}
+
+/* ── summary strip ──────────────────────────────────────── */
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.summary-card,
+.closing-note {
+  padding: 22px;
+  border-radius: var(--policy-radius);
+}
+
+.summary-card h3,
+.section-heading h2,
+.chart-card h3,
+.accuracy-card h3,
+.accuracy-meta h3,
+.closing-note h2 {
+  margin: 0 0 10px;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.summary-card p:last-child,
+.section-heading p,
+.panel-summary,
+.chart-card p,
+.accuracy-card span,
+.closing-note p {
+  margin: 0;
+  color: var(--policy-muted);
+  line-height: 1.65;
+}
+
+.summary-label,
+.section-kicker,
+.chart-kicker,
+.meta-label {
+  color: var(--policy-accent);
+}
+
+/* ── sections ───────────────────────────────────────────── */
+.insight-section,
+.accuracy-section {
+  margin-top: 28px;
+}
+
+.section-heading {
+  margin-bottom: 18px;
+  padding: 0 2px;
+}
+
+.section-heading h2 {
+  font-size: clamp(1.8rem, 2.2vw, 2.7rem);
+  color: var(--policy-ink);
+}
+
+/* ── grids ──────────────────────────────────────────────── */
+.panel-grid,
+.chart-grid,
+.accuracy-grid,
+.accuracy-meta {
+  display: grid;
+  gap: 18px;
+}
+
+.panel-grid,
+.chart-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ── insight panels ─────────────────────────────────────── */
+.insight-panel,
+.chart-card {
+  padding: 24px;
+  border-radius: var(--policy-radius);
+}
+
+.insight-panel h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+  color: var(--policy-ink);
+  margin: 0 0 8px;
+}
+
+.insight-panel ul {
+  margin: 18px 0 0;
+  padding-left: 18px;
+  color: var(--policy-ink);
+}
+
+.insight-panel li {
+  margin-bottom: 12px;
+  line-height: 1.6;
+  font-size: 0.93rem;
+  color: var(--policy-muted);
+}
+
+.insight-panel li strong {
+  color: var(--policy-ink);
+}
+
+/* ── panel badges ───────────────────────────────────────── */
+.panel-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  margin-bottom: 14px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panel-badge.warm {
+  background: rgba(201, 107, 44, 0.12);
+  color: var(--policy-warm);
+}
+
+.panel-badge.neutral {
+  background: rgba(47, 111, 98, 0.12);
+  color: var(--policy-accent);
+}
+
+.panel-badge.alert {
+  background: rgba(161, 69, 56, 0.12);
+  color: var(--policy-alert);
+}
+
+.panel-badge.safe {
+  background: rgba(73, 119, 77, 0.12);
+  color: var(--policy-safe);
+}
+
+/* ── chart cards ────────────────────────────────────────── */
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 390px;
+}
+
+.chart-copy {
+  margin-bottom: 18px;
+}
+
+.chart-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 260px;
+}
+
+/* ── accuracy section ───────────────────────────────────── */
+.accuracy-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.accuracy-card {
+  padding: 20px;
+  border-radius: 24px;
+  text-align: center;
+}
+
+.accuracy-card p {
+  margin: 0 0 8px;
+  color: var(--policy-accent);
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.accuracy-card h3 {
+  font-size: 2rem;
+  color: var(--policy-ink);
+}
+
+.accuracy-panel {
+  padding: 24px;
+  border-radius: 30px;
+}
+
+/* FIX: accuracy-meta was missing display:grid — it only had
+   grid-template-columns which does nothing without display:grid */
+.accuracy-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--policy-line);
+}
+
+.accuracy-meta h3 {
+  font-size: 1.2rem;
+  color: var(--policy-ink);
+}
+
+/* ── prediction table ───────────────────────────────────── */
+.table-shell {
+  overflow-x: auto;
+}
+
+.accuracy-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.accuracy-table th,
+.accuracy-table td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--policy-line);
+}
+
+.accuracy-table th {
+  color: var(--policy-accent-deep);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.accuracy-table td {
+  color: var(--policy-ink);
+  font-size: 0.93rem;
+}
+
+.accuracy-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.accuracy-table tbody tr:hover td {
+  background: rgba(47, 111, 98, 0.04);
+}
+
+/* ── empty state ────────────────────────────────────────── */
+.empty-state {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(47, 111, 98, 0.08);
+  color: var(--policy-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* ── closing note ───────────────────────────────────────── */
+.closing-note {
+  margin-top: 24px;
+  background:
+    linear-gradient(135deg, rgba(255, 250, 238, 0.96), rgba(241, 245, 236, 0.92));
+}
+
+/* ── staggered entrance animations ─────────────────────── */
+.metric-card,
+.summary-card,
+.insight-panel,
+.chart-card,
+.accuracy-card,
+.accuracy-panel,
+.closing-note {
+  animation: rise-in 0.6s ease both;
+}
+
+.summary-strip .summary-card:nth-child(1) { animation-delay: 0.05s; }
+.summary-strip .summary-card:nth-child(2) { animation-delay: 0.12s; }
+.summary-strip .summary-card:nth-child(3) { animation-delay: 0.19s; }
+
+.panel-grid .insight-panel:nth-child(1) { animation-delay: 0.08s; }
+.panel-grid .insight-panel:nth-child(2) { animation-delay: 0.16s; }
+
+.chart-grid .chart-card:nth-child(1) { animation-delay: 0.10s; }
+.chart-grid .chart-card:nth-child(2) { animation-delay: 0.18s; }
+
+.accuracy-grid .accuracy-card:nth-child(1) { animation-delay: 0.05s; }
+.accuracy-grid .accuracy-card:nth-child(2) { animation-delay: 0.10s; }
+.accuracy-grid .accuracy-card:nth-child(3) { animation-delay: 0.15s; }
+.accuracy-grid .accuracy-card:nth-child(4) { animation-delay: 0.20s; }
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── responsive ─────────────────────────────────────────── */
+@media (max-width: 1080px) {
+  .policy-hero,
+  .summary-strip,
+  .panel-grid,
+  .chart-grid,
+  .accuracy-grid,
+  .accuracy-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy h1 {
+    max-width: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .policy-insights-page {
+    padding: 22px 14px 42px;
+  }
+
+  .policy-hero,
+  .summary-card,
+  .insight-panel,
+  .chart-card,
+  .accuracy-card,
+  .accuracy-panel,
+  .closing-note {
+    border-radius: 22px;
+  }
+
+  .policy-hero {
+    padding: 24px;
+  }
+
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card {
+    min-height: 340px;
+  }
+
+  .accuracy-table th,
+  .accuracy-table td {
+    padding: 12px 10px;
+    font-size: 0.88rem;
+  }
+}

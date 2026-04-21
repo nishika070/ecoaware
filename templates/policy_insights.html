@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+
+{% block title %}Policy Insights | EcoAware Delhi{% endblock %}
+
+{% block page_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='policy_insights.css') }}" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+{% endblock %}
+
+{% block content %}
+  <main class="policy-insights-page">
+
+    <!-- ══════════════════════════════════════════
+         HERO
+    ══════════════════════════════════════════ -->
+    <section class="policy-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Delhi policy intelligence</p>
+        <h1>Temperature and AQI insights in one operational dashboard</h1>
+        <p class="hero-text">
+          Track temperature stress, air-quality pressure, next-day AQI forecast accuracy,
+          and practical response suggestions in a single policy view.
+        </p>
+      </div>
+
+      <div class="hero-metrics">
+        <article class="metric-card">
+          <p class="metric-label">Current Temperature</p>
+          <h2>{{ current_temperature }} °C</h2>
+          <p class="metric-note">{{ temperature_note }}</p>
+        </article>
+
+        <article class="metric-card">
+          <p class="metric-label">Current AQI</p>
+          <h2 style="color: {{ aqi_color }}">{{ current_aqi }}</h2>
+          <p class="metric-note">{{ aqi_category }}</p>
+        </article>
+
+        <article class="metric-card">
+          <p class="metric-label">Forecast AQI</p>
+          <h2>{{ forecast_aqi }}</h2>
+          <p class="metric-note">{{ forecast_model_name }} next-day outlook</p>
+        </article>
+
+        <article class="metric-card">
+          <p class="metric-label">AQI MAE</p>
+          <h2>{{ mae_error }}</h2>
+          <p class="metric-note">Average next-day prediction error</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SUMMARY STRIP
+    ══════════════════════════════════════════ -->
+    <section class="summary-strip">
+      <article class="summary-card">
+        <p class="summary-label">Current response</p>
+        <h3>{{ policy_level_name }}</h3>
+        <p>{{ policy_insight }}</p>
+      </article>
+
+      <article class="summary-card">
+        <p class="summary-label">Highest pressure station</p>
+        <h3>{{ top_station_name }}</h3>
+        <p>AQI {{ top_station_aqi }} and currently marked as {{ top_station_status }}.</p>
+      </article>
+
+      <article class="summary-card">
+        <p class="summary-label">Chart logic</p>
+        <h3>{{ month_focus_label }} yearly comparison</h3>
+        <p>{{ month_focus_note }}</p>
+      </article>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 1 — TEMPERATURE INSIGHTS
+    ══════════════════════════════════════════ -->
+    <section class="insight-section">
+      <div class="section-heading">
+        <p class="section-kicker">Section 1</p>
+        <h2>Temperature insights</h2>
+        <p>{{ temperature_insight }}</p>
+      </div>
+
+      <div class="panel-grid">
+        <article class="insight-panel">
+          <div class="panel-badge warm">Policy</div>
+          <h3>{{ temperature_policy_title }}</h3>
+          <p class="panel-summary">{{ temperature_policy_summary }}</p>
+          <ul>
+            {% for item in temperature_policy_items %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </article>
+
+        <article class="insight-panel">
+          <div class="panel-badge neutral">Health</div>
+          <h3>{{ temperature_health_title }}</h3>
+          <p class="panel-summary">{{ temperature_health_summary }}</p>
+          <ul>
+            {% for item in temperature_health_items %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </article>
+      </div>
+
+      <div class="chart-grid">
+        <article class="chart-card">
+          <div class="chart-copy">
+            <p class="chart-kicker">Year-wise monthly view</p>
+            <h3>{{ month_focus_label }} average temperature by year</h3>
+            <p>{{ month_focus_note }}</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="temperatureMonthlyChart"
+              role="img"
+              aria-label="Bar chart of average temperature for {{ month_focus_label }} across years">
+              Year-wise average temperature for {{ month_focus_label }}.
+            </canvas>
+          </div>
+        </article>
+
+        <article class="chart-card">
+          <div class="chart-copy">
+            <p class="chart-kicker">Rolling daily view</p>
+            <h3>Last 30 days temperature</h3>
+            <p>{{ last_30_days_note }}</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="temperature30DaysChart"
+              role="img"
+              aria-label="Line chart of daily temperature readings over the last 30 days">
+              Daily temperature trend over the past 30 days.
+            </canvas>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 2 — AQI INSIGHTS
+    ══════════════════════════════════════════ -->
+    <section class="insight-section">
+      <div class="section-heading">
+        <p class="section-kicker">Section 2</p>
+        <h2>AQI insights</h2>
+        <p>{{ aqi_insight }}</p>
+      </div>
+
+      <div class="panel-grid">
+        <article class="insight-panel">
+          <div class="panel-badge alert">Policy</div>
+          <h3>{{ aqi_policy_title }}</h3>
+          <p class="panel-summary">{{ aqi_policy_summary }}</p>
+          <ul>
+            {% for item in aqi_policy_items %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </article>
+
+        <article class="insight-panel">
+          <div class="panel-badge safe">Health</div>
+          <h3>{{ aqi_health_title }}</h3>
+          <p class="panel-summary">{{ aqi_health_summary }}</p>
+          <ul>
+            {% for item in aqi_health_items %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </article>
+      </div>
+
+      <div class="chart-grid">
+        <article class="chart-card">
+          <div class="chart-copy">
+            <p class="chart-kicker">Year-wise monthly view</p>
+            <h3>{{ month_focus_label }} average AQI by year</h3>
+            <p>{{ month_focus_note }}</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="aqiMonthlyChart"
+              role="img"
+              aria-label="Bar chart of average AQI for {{ month_focus_label }} across years">
+              Year-wise average AQI for {{ month_focus_label }}.
+            </canvas>
+          </div>
+        </article>
+
+        <article class="chart-card">
+          <div class="chart-copy">
+            <p class="chart-kicker">Rolling daily view</p>
+            <h3>Last 30 days AQI</h3>
+            <p>{{ last_30_days_note }}</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="aqi30DaysChart"
+              role="img"
+              aria-label="Line chart of daily AQI readings over the last 30 days">
+              Daily AQI trend over the past 30 days.
+            </canvas>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 3 — PREDICTION ACCURACY
+    ══════════════════════════════════════════ -->
+    <section class="accuracy-section">
+      <div class="section-heading">
+        <p class="section-kicker">Section 3</p>
+        <h2>AQI prediction accuracy</h2>
+        <p>
+          Checks next-day forecast quality by comparing the previous day's model
+          prediction with the following day's actual AQI.
+        </p>
+      </div>
+
+      <div class="accuracy-grid">
+        <article class="accuracy-card">
+          <p>MAE</p>
+          <h3>{{ mae }}</h3>
+          <span>Average absolute AQI error</span>
+        </article>
+
+        <article class="accuracy-card">
+          <p>RMSE</p>
+          <h3>{{ rmse }}</h3>
+          <span>Higher penalty for large misses</span>
+        </article>
+
+        <article class="accuracy-card">
+          <p>R² Score</p>
+          <h3>{{ r2_score }}</h3>
+          <span>Explained variance on holdout data</span>
+        </article>
+
+        <article class="accuracy-card">
+          <p>Policy Accuracy</p>
+          <h3>{{ classification_accuracy }}</h3>
+          <span>How often the predicted policy band matched</span>
+        </article>
+      </div>
+
+      <article class="accuracy-panel">
+        <div class="accuracy-meta">
+          <div>
+            <p class="meta-label">Training window</p>
+            <h3>{{ training_data_period }}</h3>
+          </div>
+          <div>
+            <p class="meta-label">Test window</p>
+            <h3>{{ test_data_period }}</h3>
+          </div>
+          <div>
+            <p class="meta-label">Latest resolved actual</p>
+            <h3>{{ last_updated }}</h3>
+          </div>
+        </div>
+
+        <div class="table-shell">
+          <table class="accuracy-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Previous day prediction</th>
+                <th>Actual AQI</th>
+                <th>Error</th>
+                <th>Error %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for comparison in prediction_comparisons %}
+                <tr>
+                  <td>{{ comparison.date }}</td>
+                  <td>{{ comparison.predicted }}</td>
+                  <td>{{ comparison.actual }}</td>
+                  <td>{{ comparison.error }}</td>
+                  <td>{{ comparison.error_percent }}%</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="5" style="text-align:center; color:var(--policy-muted); padding:20px 12px;">
+                    No prediction records available yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if no_historical_predictions %}
+          <p class="empty-state">
+            Historical next-day forecast comparisons will appear automatically
+            once enough resolved day-to-day records are available.
+          </p>
+        {% endif %}
+      </article>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         CLOSING NOTE
+    ══════════════════════════════════════════ -->
+    <section class="closing-note">
+      <h2>Operational takeaway</h2>
+      <p>{{ general_recommendation }}</p>
+    </section>
+
+  </main>
+{% endblock %}
+
+
+{% block page_scripts %}
+  <script>
+    /* ── shared defaults ─────────────────────────────────── */
+    Chart.defaults.font.family = "Georgia, 'Times New Roman', serif";
+    Chart.defaults.color = "#5c746d";
+
+    const GRID  = "rgba(25, 52, 47, 0.08)";
+    const TICKS = "#4c635d";
+
+    const sharedScales = {
+      x: { ticks: { color: TICKS }, grid: { color: GRID } },
+      y: { ticks: { color: TICKS }, grid: { color: GRID } }
+    };
+
+    /* ── factory: handles both line and bar cleanly ──────── */
+    function buildChart(canvasId, cfg) {
+      const el = document.getElementById(canvasId);
+      if (!el) return;
+
+      const isBar = cfg.type === "bar";
+
+      new Chart(el.getContext("2d"), {
+        type: cfg.type || "line",
+        data: {
+          labels: cfg.labels,
+          datasets: [{
+            label:           cfg.label,
+            data:            cfg.data,
+            borderColor:     cfg.borderColor,
+            backgroundColor: cfg.backgroundColor,
+            borderWidth:     2,
+            fill:            !isBar,
+            tension:         isBar ? undefined : 0.35,
+            pointRadius:     isBar ? undefined : 3,
+            pointHoverRadius:isBar ? undefined : 5,
+            borderRadius:    isBar ? 6 : undefined,
+            borderSkipped:   isBar ? false : undefined
+          }]
+        },
+        options: {
+          responsive:           true,
+          maintainAspectRatio:  false,
+          plugins: {
+            legend: {
+              labels: {
+                color: "#224d44",
+                font: { family: "Georgia, serif", size: 12 }
+              }
+            }
+          },
+          scales: sharedScales
+        }
+      });
+    }
+
+    /* ── 1. Temperature — year-wise monthly (bar) ─────────── */
+    buildChart("temperatureMonthlyChart", {
+      type:            "bar",
+      labels:          {{ temp_monthly_labels | tojson }},
+      data:            {{ temp_monthly_data   | tojson }},
+      label:           "Avg temperature (°C)",
+      borderColor:     "#c96b2c",
+      backgroundColor: "rgba(201, 107, 44, 0.28)"
+    });
+
+    /* ── 2. Temperature — last 30 days (line) ─────────────── */
+    buildChart("temperature30DaysChart", {
+      type:            "line",
+      labels:          {{ temp_30days_labels | tojson }},
+      data:            {{ temp_30days_data   | tojson }},
+      label:           "Temperature (°C)",
+      borderColor:     "#d98d3c",
+      backgroundColor: "rgba(217, 141, 60, 0.15)"
+    });
+
+    /* ── 3. AQI — year-wise monthly (bar) ─────────────────── */
+    buildChart("aqiMonthlyChart", {
+      type:            "bar",
+      labels:          {{ aqi_monthly_labels | tojson }},
+      data:            {{ aqi_monthly_data   | tojson }},
+      label:           "Avg AQI",
+      borderColor:     "#9d3d38",
+      backgroundColor: "rgba(157, 61, 56, 0.28)"
+    });
+
+    /* ── 4. AQI — last 30 days (line) ─────────────────────── */
+    buildChart("aqi30DaysChart", {
+      type:            "line",
+      labels:          {{ aqi_30days_labels | tojson }},
+      data:            {{ aqi_30days_data   | tojson }},
+      label:           "AQI",
+      borderColor:     "#b54743",
+      backgroundColor: "rgba(181, 71, 67, 0.15)"
+    });
+  </script>
+{% endblock %}

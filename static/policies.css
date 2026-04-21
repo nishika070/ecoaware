@@ -1,25 +1,226 @@
+/* ============================================================
+   policies.css  —  EcoAware · Government & Policy Insights
+   Depends on: base.html global resets + font stack
+   ============================================================ */
+
+/* ── page shell ─────────────────────────────────────────── */
 .policy-page {
-  /* Policy page-specific styling */
+  padding-bottom: 56px;
 }
 
+.page-heading {
+  margin-bottom: 28px;
+}
+
+.page-heading h1 {
+  margin: 0 0 10px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.9rem, 2.8vw, 2.8rem);
+  color: #19342f;
+  line-height: 1.1;
+}
+
+.page-heading p {
+  margin: 0;
+  font-size: 1rem;
+  color: #5c746d;
+  max-width: 62ch;
+  line-height: 1.7;
+}
+
+/* ── shared panel base ──────────────────────────────────── */
+.panel {
+  background: rgba(255, 253, 247, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 22px;
+  box-shadow: 0 22px 45px rgba(23, 46, 42, 0.10);
+}
+
+/* ── grid system ────────────────────────────────────────── */
+.grid {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* ── model-backed advisory highlight ───────────────────── */
 .policy-highlight {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  padding: 24px;
+  margin-bottom: 22px;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, rgba(24, 52, 47, 0.93), rgba(47, 102, 93, 0.88));
+  border: none;
+  border-radius: 26px;
+  box-shadow: 0 22px 45px rgba(23, 46, 42, 0.14);
 }
 
+.policy-highlight h2 {
+  margin: 0 0 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.3rem;
+  color: #fffaf0;
+}
+
+.policy-highlight p {
+  margin: 0 0 8px;
+  font-size: 0.97rem;
+  color: rgba(255, 249, 238, 0.86);
+  line-height: 1.7;
+  max-width: 72ch;
+}
+
+.policy-highlight p:last-child {
+  margin-bottom: 0;
+}
+
+.policy-highlight strong {
+  color: #ffd98e;
+}
+
+.muted-text {
+  font-size: 0.82rem !important;
+  color: rgba(247, 242, 229, 0.55) !important;
+}
+
+/* ── policy cards (2-col grid) ──────────────────────────── */
 .policy-card {
-  padding: 22px;
+  padding: 26px;
 }
 
+.policy-card h2 {
+  margin: 0 0 10px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  color: #19342f;
+}
+
+.policy-card p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #5c746d;
+  line-height: 1.68;
+}
+
+/* ── hotspot cards (3-col grid) ─────────────────────────── */
 .hotspot-card {
-  padding: 22px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
+.hotspot-card h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  color: #19342f;
+  font-weight: 600;
+}
+
+.hotspot-value {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #19342f;
+  line-height: 1;
+}
+
+.hotspot-card .muted-text {
+  font-size: 0.78rem !important;
+  color: #5c746d !important;
+}
+
+/* ── AQI status badges ──────────────────────────────────── */
+.aqi-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.aqi-badge.good,
+.aqi-badge.status-good {
+  background: rgba(73, 119, 77, 0.12);
+  color: #49774d;
+}
+
+.aqi-badge.satisfactory,
+.aqi-badge.status-satisfactory {
+  background: rgba(47, 111, 98, 0.12);
+  color: #2f6f62;
+}
+
+.aqi-badge.moderate,
+.aqi-badge.status-moderate {
+  background: rgba(201, 107, 44, 0.12);
+  color: #c96b2c;
+}
+
+.aqi-badge.poor,
+.aqi-badge.status-poor {
+  background: rgba(161, 69, 56, 0.14);
+  color: #a14538;
+}
+
+.aqi-badge.very-poor,
+.aqi-badge.status-very-poor {
+  background: rgba(120, 40, 30, 0.14);
+  color: #7a2820;
+}
+
+.aqi-badge.severe,
+.aqi-badge.status-severe {
+  background: rgba(90, 10, 10, 0.12);
+  color: #5a1010;
+}
+
+/* ── animations ─────────────────────────────────────────── */
+.panel {
+  animation: policies-rise 0.55s ease both;
+}
+
+.grid-2 .panel:nth-child(1) { animation-delay: 0.04s; }
+.grid-2 .panel:nth-child(2) { animation-delay: 0.10s; }
+.grid-3 .panel:nth-child(1) { animation-delay: 0.06s; }
+.grid-3 .panel:nth-child(2) { animation-delay: 0.12s; }
+.grid-3 .panel:nth-child(3) { animation-delay: 0.18s; }
+
+@keyframes policies-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── responsive ─────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .grid-3,
-  .grid-2 {
+  .grid-2,
+  .grid-3 {
     grid-template-columns: 1fr;
+  }
+
+  .policy-highlight {
+    padding: 22px 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hotspot-value {
+    font-size: 2rem;
+  }
+
+  .policy-card,
+  .hotspot-card {
+    padding: 18px;
   }
 }

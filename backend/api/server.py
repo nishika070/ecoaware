@@ -52,7 +52,7 @@ def temperature_page():
 @app.route("/policies")
 def policies_page():
     return render_template(
-        "policies.html",
+        "policy_insights.html",
         active_page="policies",
         **get_policies_page_context(),
     )
