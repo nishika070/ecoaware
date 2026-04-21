@@ -1,6 +1,7 @@
 import pandas as pd
 import joblib
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 
 np.set_printoptions(precision=10, suppress=True, edgeitems=10)
 
@@ -28,20 +29,23 @@ print("Loaded scalers and encoders successfully.")
 
 # first retreive everything inversed to merge
 # later apply scaling on merged dataset
-print(aqi_df.columns)
-print(aqi_df.shape)
+
 aqi_input_real = pd.DataFrame(aqi_scaler.inverse_transform(aqi_df[["AQI","Year","Location","DOY"]].values),columns=["AQI", "YEAR", "LOC", "DOY"])
+"""
 print("\nInverse transformed AQI values:")
 print(aqi_input_real[::150])
 print("\nShape of AQI input data:")
 print(aqi_input_real.shape)
+"""
 aqi_input_real.to_csv('..\\datasets\\AQI_temp.csv', index=False)
 
+
 weather_input_real = pd.DataFrame(weather_scaler.inverse_transform(weather_df[["YEAR","DOY","T2M","T2M_MAX","T2M_MIN","RH2M","PRECTOTCORR","WS10M","WS10M_MAX","WS10M_MIN","PS"]].values), columns=["YEAR","DOY","T2M","T2M_MAX","T2M_MIN","RH2M","PRECTOTCORR","WS10M","WS10M_MAX","WS10M_MIN","PS"])
-print("\nInverse transformed weather values:")
+"""print("\nInverse transformed weather values:")
 print(weather_input_real[5800:8000:100]) 
 print("\nShape of weather input data:")
 print(weather_input_real.shape)
+"""
 weather_input_real.to_csv('..\\datasets\\Weather_temp.csv', index=False)
 
 merged_df=pd.merge(weather_input_real, aqi_input_real, on=["YEAR","DOY"], how="inner")
@@ -63,3 +67,12 @@ print("Shape of merged DataFrame:")
 print(merged_df.shape)
 
 merged_df.to_csv('..\\datasets\\Merged_all_readable.csv', index=False)
+merged_df=merged_df.drop(columns=["Location"])
+
+#scaling merged csv
+scaler=MinMaxScaler()
+merged_df_scaled=scaler.fit_transform(merged_df)
+joblib.dump(scaler,"..\\models\\data_scaler_merger.pkl")
+
+merged_df_scaled = pd.DataFrame(merged_df_scaled, columns=merged_df.columns)
+merged_df_scaled.to_csv("..\\datasets\\Merged_all_scaled.csv", index=False)
