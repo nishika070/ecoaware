@@ -27,8 +27,8 @@ function renderHomeChart() {
         {
           label: "AQI",
           data: [...data.aqi_values, data.prediction],
-          borderColor: "#ff7444",
-          backgroundColor: "rgba(255, 116, 68, 0.18)",
+          borderColor: "#000000",
+          backgroundColor: "rgba(10, 163, 234, 0.18)",
           borderWidth: 2,
           tension: 0.35,
           fill: true,
@@ -41,17 +41,17 @@ function renderHomeChart() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          labels: { color: "#e9f0fa" },
+          labels: { color: "#222b38" },
         },
       },
       scales: {
         x: {
-          ticks: { color: "#d5dfee" },
-          grid: { color: "rgba(255,255,255,0.12)" },
+          ticks: { color: "#3b4f62" },
+          grid: { color: "#ffffff" },
         },
         y: {
-          ticks: { color: "#d5dfee" },
-          grid: { color: "rgba(255,255,255,0.12)" },
+          ticks: { color: "#b8bdc2" },
+          grid: { color: "#acb7c1" },
         },
       },
     },
@@ -79,7 +79,7 @@ function renderHomeMap() {
   (mapData.markers || []).forEach((marker) => {
     const circle = L.circleMarker([marker.lat, marker.lng], {
       radius: 8,
-      color: marker.color || "#d55353",
+      color: marker.color || "#520e0e",
       fillColor: marker.color || "#d55353",
       fillOpacity: 0.78,
       weight: 1.2,

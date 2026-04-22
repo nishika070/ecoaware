@@ -9,28 +9,23 @@
 {% block content %}
 <main class="aqi-bg">
   <div class="container">
-
     <div class="dashboard">
 
-      <!-- LEFT PANEL -->
-      <section class="panel">
-
-        <!-- LIVE LABEL -->
-        <p class="label">Live &mdash; {{ current_label }}</p>
-
-        <!-- BIG AQI NUMBER -->
-        <div class="big-aqi">{{ current_aqi }}</div>
-
-        <!-- STATUS BADGE -->
-        <div class="aqi-badge {{ current_status | lower | replace(' ', '-') }}">
-          {{ current_status }}
+      <section class="panel hero-panel">
+        <div class="hero-top">
+          <div>
+            <p class="label">Live — {{ current_label }}</p>
+            <div class="big-aqi">{{ current_aqi }}</div>
+            <div class="aqi-badge {{ current_status | lower | replace(' ', '-') }}">
+              {{ current_status }}
+            </div>
+          </div>
         </div>
 
-        <!-- AQI SCALE BAR WITH NEEDLE -->
         <div class="aqi-bar-wrap">
           <div class="aqi-bar">
             <div class="aqi-needle"
-                 style="left: {{ [[current_aqi | int / 500 * 100, 100] | min, 0] | max }}%">
+              style="left: {{ [[current_aqi | int / 500 * 100, 100] | min, 0] | max }}%;">
             </div>
           </div>
           <div class="aqi-scale-labels">
@@ -43,8 +38,57 @@
           </div>
         </div>
 
-        <!-- ADVICE -->
-        <div class="info-box">
+        <!-- Current pollutants -->
+        <div class="metrics-section">
+          <h3 class="mini-title">Current Pollutants</h3>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">PM2.5</span>
+              <div class="metric-value">{{ current_pollutants.pm25 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">PM10</span>
+              <div class="metric-value">{{ current_pollutants.pm10 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">NO₂</span>
+              <div class="metric-value">{{ current_pollutants.no2 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">SO₂</span>
+              <div class="metric-value">{{ current_pollutants.so2 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">CO</span>
+              <div class="metric-value">{{ current_pollutants.co }}</div>
+              <span class="metric-sub">mg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">O₃</span>
+              <div class="metric-value">{{ current_pollutants.o3 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+          </div>
+        </div>
+        <!-- Tomorrow predicted AQI -->
+        <div class="tomorrow-strip">
+          <span class="tomorrow-label">Tomorrow's Forecast</span>
+          <div class="tomorrow-aqi">{{ predicted.aqi }}</div>
+          <div class="aqi-badge {{ predicted.status | lower | replace(' ', '-') }}">
+            {{ predicted.status }}
+          </div>
+          <span class="metric-sub">Predicted by model</span>
+        </div>
+         <div class="info-box">
           <strong>Health advisory</strong>
           Air quality is {{ current_status | lower }} today.
           {% if current_status | lower == "good" %}
@@ -61,49 +105,38 @@
             Emergency conditions. Stay indoors with windows closed. Seek medical help if symptoms arise.
           {% endif %}
         </div>
-
       </section>
 
-      <!-- RIGHT PANEL -->
       <section class="panel">
-
         <h2>All Monitoring Stations</h2>
         <p class="panel-sub">Real-time readings across the city</p>
 
         <div class="trend-table">
           {% for row in station_rows %}
           <div class="trend-row">
-
             <div class="station-name">{{ row.station }}</div>
-
             <div class="trend-bar">
               <div class="trend-fill"
                    style="width: {{ [[row.aqi / 500 * 100, 100] | min, 0] | max }}%; background: {{ row.color }}">
               </div>
             </div>
-
             <div class="station-value">{{ row.aqi }}</div>
-
             <div class="station-status {{ row.status | lower | replace(' ', '-') }}">
               {{ row.status }}
             </div>
-
           </div>
           {% endfor %}
         </div>
-
       </section>
 
     </div>
 
-    <!-- AQI EXPLANATION -->
-    <section class="panel explanation">
 
+    <section class="panel explanation">
       <h2>What the numbers mean</h2>
       <p class="subtext">AQI is a scale from 0 to 500 — lower is better.</p>
 
       <div class="legend-grid">
-
         <div class="legend-item">
           <span class="dot good"></span>
           <div>
@@ -151,9 +184,7 @@
             <span>401+<br>Emergency conditions</span>
           </div>
         </div>
-
       </div>
-
     </section>
 
   </div>

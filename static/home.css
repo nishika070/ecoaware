@@ -317,10 +317,12 @@
 .hero-panel { padding: 28px; }
 
 /* ─── Temp line ─── */
+/* Make temp + condition vertical */
 .hero-temp-line {
   display: flex;
-  gap: 24px;
-  align-items: center;
+  flex-direction: column;   /* KEY CHANGE */
+  align-items: flex-start;  /* left align */
+  gap: 10px;
 }
 
 /* Spinning conic ring */
@@ -351,17 +353,13 @@
   border-radius: 50%;
   background: var(--neutral-0);
 }
-
+/* Big temperature */
 .hero-temp {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  position: relative;   /* remove absolute */
+  inset: auto;          /* reset */
+  font-size: clamp(2.8rem, 5vw, 3.8rem);
   font-weight: 800;
-  color: var(--neutral-900);
-  z-index: 2;
+  display: block;
 }
 
 .hero-temp span {
@@ -375,11 +373,11 @@
 /* ─── Condition block ─── */
 .hero-condition { display: grid; gap: 8px; }
 
-.condition-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--neutral-800);
-  line-height: 1.2;
+/* Condition below temp */
+.hero-condition {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /* ─── Meta chips ─── */
@@ -605,7 +603,7 @@
 .map-wrap h2 {
   font-size: .95rem;
   font-weight: 700;
-  color: var(--neutral-700);
+  color: black;
   margin-bottom: 14px;
   text-transform: uppercase;
   letter-spacing: .06em;
