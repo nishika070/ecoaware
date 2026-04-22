@@ -525,7 +525,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     air_quality = weather.get("air_quality", {})
     weather_error = weather.get("source_error")
     print(air_quality)
-    live_us_aqi = air_quality.get("us_aqi")
+    live_us_aqi = air_quality.get("aqi")
     today_forecast = forecast_days[0] if forecast_days else {}
 
     for row in station_rows:
@@ -579,7 +579,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
             },
             {
                 "title": "AQI",
-                "value": format_int(live_us_aqi) if live_us_aqi is not None else int(round(latest_station_aqi)),
+                "value":  int(round(live_aqi_numeric)) if live_us_aqi is not None else int(round(latest_station_aqi)),
                 "note": (
                     "Live US AQI from Open-Meteo"
                     if live_us_aqi is not None
@@ -703,31 +703,67 @@ def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
 
     # DEFAULT → city average
     if selected_station is None or selected_station == "all":
-        current_aqi = round(sum(row["aqi"] for row in station_rows) / len(station_rows), 1) if station_rows else 0
 
-        current_status = classify_aqi(current_aqi)   # for badge ✅
-        current_label = "City Average"               # for LIVE text ✅
+        # Try LIVE AQI (Delhi center)
+        station_coordinates = STATION_COORDINATES.get("Delhi", {"lat": 28.61, "lng": 77.23})
 
+        weather = get_station_weather_snapshot(
+            "Delhi",
+            station_coordinates.get("lat"),
+            station_coordinates.get("lng"),
+        )
+
+        air_quality = weather.get("air_quality", {})
+        live_aqi = air_quality.get("aqi")
+
+        if isinstance(live_aqi, (int, float)):
+            current_aqi = int(live_aqi)
+        else:
+            # fallback to dataset average
+            current_aqi = round(
+                sum(row["aqi"] for row in station_rows) / len(station_rows),
+                1
+            ) if station_rows else 0
+
+        current_status = classify_aqi(current_aqi)
+        current_label = "City Average"
         selected_station = "all"
 
     else:
         selected = next((s for s in station_rows if s["station"] == selected_station), None)
 
-        if selected:
-            current_aqi = selected["aqi"]
-            current_status = selected["status"]
-            current_label = selected["station"]     # show station name
+        # Get LIVE AQI for selected station
+        station_coordinates = STATION_COORDINATES.get(selected_station, {})
+
+        weather = get_station_weather_snapshot(
+            selected_station,
+            station_coordinates.get("lat"),
+            station_coordinates.get("lng"),
+        )
+
+        air_quality = weather.get("air_quality", {})
+        live_aqi = air_quality.get("aqi")
+
+        if isinstance(live_aqi, (int, float)):
+            current_aqi = int(live_aqi)
+        elif selected:
+            current_aqi = selected["aqi"]   # fallback CSV
         else:
             current_aqi = 0
-            current_status = "Unavailable"
+
+        current_status = classify_aqi(current_aqi)
+
+        if selected:
+            current_label = selected["station"]
+        else:
             current_label = "Unknown"
 
     return {
         "station_rows": station_rows,
         "selected_station": selected_station,
         "current_aqi": current_aqi,
-        "current_status": current_status,   # badge
-        "current_label": current_label,     # LIVE text ✅
+        "current_status": current_status,
+        "current_label": current_label,
 
         "policy_note": (
             f"{station_rows[0]['station']} currently has the highest AQI."

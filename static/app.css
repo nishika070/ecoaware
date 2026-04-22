@@ -27,10 +27,9 @@ a {
 }
 
 .container {
-  width: min(1460px, calc(100% - 36px));
+  width: min(1100px, calc(100% - 40px));
   margin: 0 auto;
 }
-
 .site-header {
   position: sticky;
   top: 0;
