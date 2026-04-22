@@ -486,6 +486,7 @@ def get_monthly_pattern() -> list[dict[str, Any]]:
 
 
 def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
+
     available_stations = get_available_stations()
     station_name = resolve_station_name(selected_station)
 
@@ -523,7 +524,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     forecast_days = weather.get("forecast_days", [])
     air_quality = weather.get("air_quality", {})
     weather_error = weather.get("source_error")
-
+    print(air_quality)
     live_us_aqi = air_quality.get("us_aqi")
     today_forecast = forecast_days[0] if forecast_days else {}
 
@@ -553,7 +554,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     today_min_temp = today_forecast.get("min_temp")
     visibility_m = current_weather.get("visibility_m")
     visibility_km = round(float(visibility_m) / 1000, 1) if visibility_m is not None else None
-
+    print("LIVE AQI: ", live_us_aqi)
     return {
         "stations": available_stations,
         "selected_station": station_name,

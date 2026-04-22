@@ -69,7 +69,6 @@
               <div class="hourly-item">
                 <span>{{ item.label }}</span>
                 <strong>{{ item.temp_c|round|int if item.temp_c is not none else '--' }} C</strong>
-                <small>{{ item.precip_probability|round|int if item.precip_probability is not none else '--' }}% rain</small>
               </div>
             {% endfor %}
           </div>

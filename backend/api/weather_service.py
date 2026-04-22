@@ -6,6 +6,8 @@ from typing import Any
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+WAQI_GEO_BASE_URL = "https://api.waqi.info/feed/geo:{lat};{lng}/?token={token}"
+WAQI_TOKEN = ""   # ← set this from config/env later
 
 FORECAST_BASE_URL = "https://api.open-meteo.com/v1/forecast"
 AIR_QUALITY_BASE_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
@@ -88,6 +90,15 @@ def _build_hourly_preview(hourly_payload: dict[str, Any], current_time: str | No
     return preview
 
 
+def _fetch_waqi_geo(lat: float, lon: float) -> dict[str, Any]:
+    """Fetch AQI data from WAQI using geo coordinates."""
+    url = WAQI_GEO_BASE_URL.format(lat=lat, lng=lon, token=WAQI_TOKEN)
+    try:
+        with urlopen(url, timeout=12) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        return data
+    except Exception:
+        return {"status": "error"}
 def get_station_weather_snapshot(
     station_name: str,
     lat: float | None,
@@ -109,6 +120,7 @@ def get_station_weather_snapshot(
     if cached and now_utc - cached[0] <= _CACHE_TTL:
         return cached[1]
 
+    # ============ 1. FETCH OPEN‑METEO WEATHER  ============
     try:
         forecast_payload = _fetch_json(
             FORECAST_BASE_URL,
@@ -145,38 +157,20 @@ def get_station_weather_snapshot(
                 ],
             },
         )
-
-        air_payload = _fetch_json(
-            AIR_QUALITY_BASE_URL,
-            {
-                "latitude": lat,
-                "longitude": lon,
-                "timezone": "auto",
-                "hourly": [
-                    "us_aqi",
-                    "pm2_5",
-                    "pm10",
-                    "nitrogen_dioxide",
-                    "ozone",
-                    "sulphur_dioxide",
-                    "carbon_monoxide",
-                ],
-            },
-        )
     except Exception:
         return {
             "station": station_name,
-            "source_error": "Open-Meteo request failed.",
+            "source_error": "Open-Meteo weather request failed.",
             "current": {},
             "forecast_days": [],
             "air_quality": {},
             "fetched_at": None,
         }
 
+    # Build forecast_days from Open‑Meteo:
     current = forecast_payload.get("current", {})
     hourly_weather = forecast_payload.get("hourly", {})
     daily = forecast_payload.get("daily", {})
-    hourly = air_payload.get("hourly", {})
 
     forecast_days: list[dict[str, Any]] = []
     times = daily.get("time", [])
@@ -196,16 +190,42 @@ def get_station_weather_snapshot(
             }
         )
 
-    air_quality = {
-        "us_aqi": _find_latest_value(hourly.get("us_aqi", [])),
-        "pm2_5": _find_latest_value(hourly.get("pm2_5", [])),
-        "pm10": _find_latest_value(hourly.get("pm10", [])),
-        "nitrogen_dioxide": _find_latest_value(hourly.get("nitrogen_dioxide", [])),
-        "ozone": _find_latest_value(hourly.get("ozone", [])),
-        "sulphur_dioxide": _find_latest_value(hourly.get("sulphur_dioxide", [])),
-        "carbon_monoxide": _find_latest_value(hourly.get("carbon_monoxide", [])),
-    }
+    # ============ 2. FETCH WAQI AQI (instead of Open‑Meteo air‑quality) ============
+    try:
+        waqi_data = _fetch_waqi_geo(lat, lon)
+    except Exception:
+        waqi_data = {"status": "error"}
 
+    air_quality = {}
+    if waqi_data.get("status") == "ok":
+        data = waqi_data["data"]
+        iaqi = data.get("iaqi", {})
+        obs_time = data.get("time", {}).get("s", "Unknown")
+
+        # WAQI returns raw pollutant values and overall AQI
+        air_quality = {
+            "aqi": data.get("aqi"),
+            "pm2_5": (iaqi.get("pm25") or {}).get("v"),
+            "pm10": (iaqi.get("pm10") or {}).get("v"),
+            "nitrogen_dioxide": (iaqi.get("no2") or {}).get("v"),
+            "ozone": (iaqi.get("o3") or {}).get("v"),
+            "sulphur_dioxide": (iaqi.get("so2") or {}).get("v"),
+            "carbon_monoxide": (iaqi.get("co") or {}).get("v"),
+            "observed_at": obs_time,
+        }
+    else:
+        air_quality = {
+            "aqi": None,
+            "pm2_5": None,
+            "pm10": None,
+            "nitrogen_dioxide": None,
+            "ozone": None,
+            "sulphur_dioxide": None,
+            "carbon_monoxide": None,
+            "observed_at": None,
+        }
+
+    # ============ 3. BUILD SNAPSHOT  ============
     snapshot = {
         "station": station_name,
         "source_error": None,
