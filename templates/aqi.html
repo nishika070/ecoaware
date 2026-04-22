@@ -38,7 +38,57 @@
           </div>
         </div>
 
-        <div class="info-box">
+        <!-- Current pollutants -->
+        <div class="metrics-section">
+          <h3 class="mini-title">Current Pollutants</h3>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">PM2.5</span>
+              <div class="metric-value">{{ current_pollutants.pm25 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">PM10</span>
+              <div class="metric-value">{{ current_pollutants.pm10 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">NO₂</span>
+              <div class="metric-value">{{ current_pollutants.no2 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">SO₂</span>
+              <div class="metric-value">{{ current_pollutants.so2 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">CO</span>
+              <div class="metric-value">{{ current_pollutants.co }}</div>
+              <span class="metric-sub">mg/m³</span>
+            </div>
+
+            <div class="metric-card">
+              <span class="metric-label">O₃</span>
+              <div class="metric-value">{{ current_pollutants.o3 }}</div>
+              <span class="metric-sub">µg/m³</span>
+            </div>
+          </div>
+        </div>
+        <!-- Tomorrow predicted AQI -->
+        <div class="tomorrow-strip">
+          <span class="tomorrow-label">Tomorrow's Forecast</span>
+          <div class="tomorrow-aqi">{{ predicted.aqi }}</div>
+          <div class="aqi-badge {{ predicted.status | lower | replace(' ', '-') }}">
+            {{ predicted.status }}
+          </div>
+          <span class="metric-sub">Predicted by model</span>
+        </div>
+         <div class="info-box">
           <strong>Health advisory</strong>
           Air quality is {{ current_status | lower }} today.
           {% if current_status | lower == "good" %}
@@ -80,6 +130,7 @@
       </section>
 
     </div>
+
 
     <section class="panel explanation">
       <h2>What the numbers mean</h2>
