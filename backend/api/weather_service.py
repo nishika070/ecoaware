@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 from urllib.request import urlopen
 
 WAQI_GEO_BASE_URL = "https://api.waqi.info/feed/geo:{lat};{lng}/?token={token}"
-WAQI_TOKEN = ""   # ← set this from config/env later
+WAQI_TOKEN = "5bb7bdd214ac544ed93f42564857c93d4f5a0b92"   # ← set this from config/env later
 
 FORECAST_BASE_URL = "https://api.open-meteo.com/v1/forecast"
 AIR_QUALITY_BASE_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
