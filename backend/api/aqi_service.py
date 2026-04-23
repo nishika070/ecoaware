@@ -40,10 +40,6 @@ POLICY_CLASSIFIER_PATH = MODEL_DIR / "policy_classifier.pkl"
 MERGER_SCALER_PATH = MODEL_DIR / "data_scaler_merger.pkl"
 
 
-# ============================================================================
-# DATA STRUCTURES
-# ============================================================================
-
 @dataclass
 class AqiPredictionBundle:
     today: int
@@ -59,11 +55,6 @@ class AqiPredictionBundle:
     history_labels: list[str] = None
     history_values: list[int] = None
     temperature: float | None = None
-
-
-# ============================================================================
-# HEALTH & POLICY MAPPINGS
-# ============================================================================
 
 HEALTH_SUGGESTIONS = {
     0: "Good! Air quality is satisfactory. Enjoy outdoor activities.",
@@ -232,10 +223,6 @@ def advice_for_aqi(aqi: float) -> str:
         return "Avoid outdoor exposure; follow high-risk emergency precautions."
 
 
-# ============================================================================
-# MODEL LOADING
-# ============================================================================
-
 @lru_cache(maxsize=1)
 def load_models() -> tuple[Any, Any, Any] | tuple[None, None, None]:
     try:
@@ -263,10 +250,6 @@ def load_models() -> tuple[Any, Any, Any] | tuple[None, None, None]:
         return None, None, None
 
 
-# ============================================================================
-# DATA LOADING
-# ============================================================================
-
 @lru_cache(maxsize=1)
 def load_aqi_data() -> pd.DataFrame:
     try:
@@ -284,10 +267,6 @@ def load_scaled_data() -> pd.DataFrame:
         print(f"✗ Error loading scaled data: {str(e)}")
         return pd.DataFrame()
 
-
-# ============================================================================
-# PREDICTIONS
-# ============================================================================
 
 def predict_aqi(X_features: np.ndarray) -> tuple[float, float]:
     aqi_regressor, policy_classifier, scaler = load_models()
@@ -315,9 +294,6 @@ def predict_aqi(X_features: np.ndarray) -> tuple[float, float]:
         return 200.0, 3
 
 
-# ============================================================================
-# CONTEXT BUILDERS FOR TEMPLATES
-# ============================================================================
 
 def get_relative_spread_color(aqi: float, min_aqi: float, max_aqi: float) -> str:
     if max_aqi <= min_aqi:
