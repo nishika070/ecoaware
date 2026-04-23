@@ -105,52 +105,74 @@ def analysis_page():
     # Prediction payload
     prediction = build_prediction_payload()
     
-        # ── Forecast Data (5 days: 4 model + 1 trend-based) ──
+        # ── Forecast Data ──
     forecast_days = []
+    forecast_labels = []
+    forecast_values = []
     weather_forecast = weather.get('forecast_days', []) if weather else []
     
-    forecast_labels = list(chart_data.get('forecast_labels', []))
-    forecast_values = list(chart_data.get('forecast', []))
-    
-    # Keep 4 model predictions + add 1 trend-based projection
-    if len(forecast_labels) >= 4 and not last_15_days.empty:
-        last_date = last_15_days['date'].iloc[-1]
-        
-        # Calculate trend from the 4 forecast values
-        if len(forecast_values) >= 2:
-            trend = (forecast_values[-1] - forecast_values[0]) / (len(forecast_values) - 1)
+    # Get AQI trend from CSV
+    if not last_15_days.empty and len(last_15_days) >= 5:
+        recent_aqi = last_15_days['aqi'].tail(5).tolist()
+        if len(recent_aqi) >= 2:
+            trend = (recent_aqi[-1] - recent_aqi[0]) / 4
         else:
             trend = 0
         
-        # Add 5th day with trend adjustment
-        fifth_aqi = forecast_values[-1] + trend
-        fifth_aqi = max(0, min(500, int(round(fifth_aqi))))
+        for i in range(5):
+            next_aqi = recent_aqi[-1] + (trend * (i + 1))
+            forecast_values.append(max(0, min(500, int(round(next_aqi)))))
+    else:
+        forecast_values = [100, 105, 110, 115, 120]
+    
+    # Get dates and weather from API
+    for i in range(min(5, len(weather_forecast))):
+        wd = weather_forecast[i]
+        date_str = f"{wd.get('day_label', 'Day')} {wd.get('date_label', '')}"
+        forecast_labels.append(date_str)
         
-        next_date = last_date + pd.Timedelta(days=5)
-        forecast_labels.append(next_date.strftime('%d %b'))
-        forecast_values.append(fifth_aqi)
-    
-    # Limit to 5 days
-    forecast_labels = forecast_labels[:5]
-    forecast_values = forecast_values[:5]
-    
-    for i in range(len(forecast_labels)):
-        aqi_val = forecast_values[i] if i < len(forecast_values) else 0
-        weather_day = weather_forecast[i] if i < len(weather_forecast) else {}
+        aqi_val = forecast_values[i]
         
         forecast_days.append({
-            'date': forecast_labels[i],
-            'aqi': int(round(aqi_val)),
+            'date': date_str,
+            'aqi': aqi_val,
             'category': classify_aqi(aqi_val),
             'aqi_color': get_aqi_color(aqi_val),
-            'temp_max': round(weather_day.get('max_temp', 0), 1) if weather_day.get('max_temp') is not None else '--',
-            'temp_min': round(weather_day.get('min_temp', 0), 1) if weather_day.get('min_temp') is not None else '--',
-            'precipitation': weather_day.get('precip_probability', '--'),
+            'temp_max': round(wd.get('max_temp', 0), 1) if wd.get('max_temp') is not None else '--',
+            'temp_min': round(wd.get('min_temp', 0), 1) if wd.get('min_temp') is not None else '--',
+            'precipitation': wd.get('precip_probability', '--'),
             'humidity': weather.get('current', {}).get('humidity_percent', '--') if weather else '--',
             'wind_speed': weather.get('current', {}).get('wind_speed_kmh', '--') if weather else '--',
             'health_advisory': advice_for_aqi(aqi_val)
         })
     
+    # If less than 5 weather days, pad with defaults
+    while len(forecast_days) < 5:
+        i = len(forecast_days)
+        aqi_val = forecast_values[i] if i < len(forecast_values) else forecast_values[-1]
+        forecast_labels.append(f"Day {i+1}")
+        forecast_days.append({
+            'date': f"Day {i+1}",
+            'aqi': aqi_val,
+            'category': classify_aqi(aqi_val),
+            'aqi_color': get_aqi_color(aqi_val),
+            'temp_max': '--',
+            'temp_min': '--',
+            'precipitation': '--',
+            'humidity': '--',
+            'wind_speed': '--',
+            'health_advisory': advice_for_aqi(aqi_val)
+        })
+    
+    # ── Forecast Average ──
+    forecast_avg = sum(forecast_values) / len(forecast_values)
+    forecast_trend = "Stable"
+    if len(forecast_values) >= 2:
+        if forecast_values[-1] > forecast_values[0]:
+            forecast_trend = "Increasing"
+        elif forecast_values[-1] < forecast_values[0]:
+            forecast_trend = "Decreasing"
+
     # ── Trends ──
     aqi_trend = "Stable"
     if not last_15_days.empty and len(last_15_days) >= 2:
@@ -285,24 +307,21 @@ def analysis_page():
     else:
         tips.append({'icon': '😊', 'title': 'Comfortable Weather', 'description': 'Pleasant temperature!'})
     
-    # ── Chart Data ──
-    temp_hist = []
-    precip_hist = []
-    if not last_15_days.empty:
-        for _, row in last_15_days.tail(7).iterrows():
-            temp_hist.append(round(float(row.get('temperature', 0)), 1))
-            precip_hist.append(0)
-    
-    past_labels = chart_data.get('labels', [])
-    weather_labels = (past_labels[-7:] if len(past_labels) >= 7 else past_labels) + forecast_labels
+        # ── Chart Data ──
+    # Temperature and Precipitation - 5 forecast days only
+    weather_labels = forecast_labels  # Only forecast dates
     
     temp_forecast = []
     precip_forecast = []
     for i in range(len(forecast_labels)):
         wd = weather_forecast[i] if i < len(weather_forecast) else {}
-        temp_forecast.append(round(wd.get('max_temp', 0), 1) if wd.get('max_temp') is not None else 0)
-        precip_forecast.append(wd.get('precip_probability', 0) if wd.get('precip_probability') is not None else 0)
+        temp_forecast.append(round(float(wd.get('max_temp', 0)), 1))
+        precip_forecast.append(int(wd.get('precip_probability', 0)))
     
+    temperature_data = temp_forecast
+    precipitation_data = precip_forecast
+    
+    # AQI Chart Data
     aqi_hist = list(chart_data.get('actual', []))
     aqi_smooth = list(chart_data.get('smoothed', []))
     
@@ -419,8 +438,8 @@ def analysis_page():
             'aqi_forecast': aqi_forecast_padded,
             'aqi_trend': aqi_trend_line,
             'weather_labels': weather_labels,
-            'temperature_data': temp_hist + temp_forecast,
-            'precipitation_data': precip_hist + precip_forecast,
+            'temperature_data': temperature_data,
+            'precipitation_data': precipitation_data,
             'category_labels': list(category_counts.keys()),
             'category_data': list(category_counts.values()),
             'category_colors': ['#2e9f57', '#8abf2f', '#d2a819', '#e67e22', '#d55353', '#7a0019']

@@ -34,12 +34,20 @@
 
 /* ── Base Override ── */
 .analysis-page {
-  background: var(--neutral-50);
+  min-height: 100vh;
+  padding: 36px 0 56px;
+  font-family: var(--font);
+  color: var(--neutral-800);
+  background:
+    radial-gradient(circle at top left, rgba(188, 234, 225, 0.55) 0%, transparent 34%),
+    radial-gradient(circle at bottom right, rgba(145, 214, 203, 0.4) 0%, transparent 32%),
+    linear-gradient(180deg, #eef9f6 0%, #dbf1ec 52%, #eef8f6 100%);
   font-family: var(--font);
   color: var(--neutral-800);
   min-height: calc(100vh - 126px);
   padding: 36px 0 56px;
 }
+
 
 .analysis-page .container {
   display: grid;
@@ -182,6 +190,16 @@
   font-size: .85rem;
   color: var(--neutral-500);
   font-weight: 500;
+}
+
+.three-cards {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+  .three-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Chart Section ── */
@@ -425,12 +443,12 @@
   text-align: center;
   transition: transform .25s ease, box-shadow .25s ease;
   min-width: 130px;
+  outline: none;
 }
 
 .forecast-day-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
-  border-color: var(--eco-200);
 }
 
 .forecast-date .day-name {
@@ -579,9 +597,8 @@
   width: 200px;
   height: 12px;
   border-radius: 6px;
-  background: linear-gradient(90deg, #3b82f6, #93c5fd, #ffffff, #fca5a5, #ef4444);
+  background: linear-gradient(90deg, #228b22, #86efac, #ffffff, #86efac, #228b22);
 }
-
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .summary-grid { grid-template-columns: repeat(2, 1fr); }

@@ -32,7 +32,7 @@
     </div>
 
     <!-- Summary Cards -->
-    <div class="summary-grid">
+    <div class="summary-grid three-cards">
       <div class="summary-card">
         <span class="card-label">Current AQI</span>
         <span class="card-number" style="color: {{ analysis_data.current_aqi_color }}">{{ analysis_data.current_aqi }}</span>
@@ -45,20 +45,31 @@
       </div>
       <div class="summary-card">
         <span class="card-label">Temperature</span>
-        <span class="card-number">{% if analysis_data.current_temp %}{{ analysis_data.current_temp }}°C{% else %}--{% endif %}</span>
+        <span class="card-number">{% if analysis_data.current_temp %}{{ analysis_data.current_temp }}&deg;C{% else %}--{% endif %}</span>
         <span class="card-sub">{{ analysis_data.temp_trend }} trend</span>
       </div>
-      <div class="summary-card">
-        <span class="card-label">Model Confidence</span>
-        <span class="card-number">{{ analysis_data.confidence }}%</span>
-        <span class="card-sub">{{ analysis_data.model_name }}</span>
+    </div>
+
+    <!-- Daily Life Tips -->
+    <div class="glass-panel">
+      <h2 class="chart-title">What Should You Do Today?</h2>
+      <div class="tips-grid">
+        {% for tip in analysis_data.tips %}
+        <div class="tip-card">
+          <div class="tip-icon">{{ tip.icon }}</div>
+          <div class="tip-content">
+            <h4>{{ tip.title }}</h4>
+            <p>{{ tip.description }}</p>
+          </div>
+        </div>
+        {% endfor %}
       </div>
     </div>
 
     <!-- Main AQI Chart -->
     <div class="glass-panel">
       <div class="chart-header-row">
-        <h2 class="chart-title">AQI Trend: Past 15 Days & 5-Day Forecast</h2>
+        <h2 class="chart-title">AQI Trend: Past 15 Days and 5-Day Forecast</h2>
         <div class="chart-legend-inline">
           <span class="legend-tag"><span class="legend-dot" style="background:#2a9fd6;"></span> Historical</span>
           <span class="legend-tag"><span class="legend-dot" style="background:#f59e0b;"></span> Forecast</span>
@@ -73,13 +84,13 @@
     <!-- Temperature & Category Charts -->
     <div class="two-col">
       <div class="glass-panel">
-        <h2 class="chart-title"> Temperature & Precipitation</h2>
+        <h2 class="chart-title">Temperature and Precipitation</h2>
         <div class="chart-wrap medium">
           <canvas id="weatherChart"></canvas>
         </div>
       </div>
       <div class="glass-panel">
-        <h2 class="chart-title"> AQI Category Distribution</h2>
+        <h2 class="chart-title">AQI Category Distribution</h2>
         <div class="chart-wrap medium">
           <canvas id="categoryChart"></canvas>
         </div>
@@ -88,9 +99,7 @@
 
     <!-- 5-Day Forecast Cards -->
     <div class="glass-panel">
-      <div class="chart-header-row">
-        <h2 class="chart-title"> 5-Day Forecast</h2>
-      </div>
+      <h2 class="chart-title">5-Day Forecast</h2>
       <div class="forecast-cards-row five-cards">
         {% for day in analysis_data.forecast_days[:5] %}
         <div class="forecast-day-card">
@@ -106,15 +115,15 @@
           </div>
           <div class="forecast-weather-details">
             <div class="weather-detail">
-              <span class="wd-icon">🌡️</span>
-              <span>{{ day.temp_max }}°/{{ day.temp_min }}°</span>
+              <span>Temp</span>
+              <span>{{ day.temp_max }}&deg; / {{ day.temp_min }}&deg;</span>
             </div>
             <div class="weather-detail">
-              <span class="wd-icon">💧</span>
+              <span>Rain</span>
               <span>{{ day.precipitation }}%</span>
             </div>
             <div class="weather-detail">
-              <span class="wd-icon">💨</span>
+              <span>Wind</span>
               <span>{{ day.wind_speed }}</span>
             </div>
           </div>
@@ -125,9 +134,9 @@
 
     <!-- Correlation Heatmap -->
     <div class="glass-panel">
-      <h2 class="chart-title"> Correlation Heatmap</h2>
+      <h2 class="chart-title">Correlation Heatmap</h2>
       <p style="color: var(--neutral-500); font-size: .85rem; margin-bottom: 16px;">
-        See how different environmental factors relate to each other. Values closer to 1 (dark red) = strong positive correlation, -1 (dark blue) = strong negative.
+        How different environmental factors relate to each other. Darker = stronger correlation.
       </p>
       <div class="heatmap-container">
         <canvas id="heatmapChart"></canvas>
@@ -139,29 +148,12 @@
       </div>
     </div>
 
-    <!-- Daily Life Tips -->
-    <div class="glass-panel">
-      <h2 class="chart-title"> What Should You Do Today?</h2>
-      <div class="tips-grid">
-        {% for tip in analysis_data.tips %}
-        <div class="tip-card">
-          <div class="tip-icon">{{ tip.icon }}</div>
-          <div class="tip-content">
-            <h4>{{ tip.title }}</h4>
-            <p>{{ tip.description }}</p>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-
     <!-- Key Insights -->
     <div class="glass-panel">
-      <h2 class="chart-title"> Key Insights</h2>
+      <h2 class="chart-title">Key Insights</h2>
       <div class="insight-list">
         {% for insight in analysis_data.insights %}
         <div class="insight-item">
-          <span class="insight-icon">{{ insight.icon }}</span>
           <div>
             <strong>{{ insight.title }}</strong>
             <p>{{ insight.description }}</p>
@@ -184,7 +176,6 @@
   const corrData = JSON.parse(document.getElementById('correlation-data').textContent);
 
   function initCharts() {
-    // AQI Chart
     new Chart(document.getElementById('aqiChart'), {
       type: 'line',
       data: {
@@ -227,26 +218,19 @@
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          y: {
-            grid: { color: '#e2e8f0' },
-            ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans' } }
-          },
-          x: {
-            grid: { color: '#e2e8f0' },
-            ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans' } }
-          }
+          y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+          x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } }
         }
       }
     });
 
-    // Weather Chart
     new Chart(document.getElementById('weatherChart'), {
       type: 'bar',
       data: {
         labels: chartData.weather_labels,
         datasets: [
           {
-            label: 'Temp (°C)',
+            label: 'Temperature',
             data: chartData.temperature_data,
             backgroundColor: 'rgba(245,158,11,0.5)',
             borderColor: '#f59e0b',
@@ -255,7 +239,7 @@
             yAxisID: 'y'
           },
           {
-            label: 'Rain (%)',
+            label: 'Precipitation',
             data: chartData.precipitation_data,
             type: 'line',
             borderColor: '#2a9fd6',
@@ -270,28 +254,15 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: '#64748b', font: { family: 'Plus Jakarta Sans' } } }
-        },
+        plugins: { legend: { labels: { color: '#64748b' } } },
         scales: {
-          y: {
-            grid: { color: '#e2e8f0' },
-            ticks: { color: '#64748b' }
-          },
-          y1: {
-            position: 'right',
-            grid: { drawOnChartArea: false },
-            ticks: { color: '#64748b' }
-          },
-          x: {
-            grid: { color: '#e2e8f0' },
-            ticks: { color: '#64748b' }
-          }
+          y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+          y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#64748b' } },
+          x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } }
         }
       }
     });
 
-    // Category Doughnut
     new Chart(document.getElementById('categoryChart'), {
       type: 'doughnut',
       data: {
@@ -307,31 +278,25 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            position: 'right',
-            labels: { color: '#64748b', padding: 14, font: { family: 'Plus Jakarta Sans', size: 12 } }
-          }
+          legend: { position: 'right', labels: { color: '#64748b', padding: 14, font: { size: 12 } } }
         }
       }
     });
 
-    // Correlation Heatmap
-    if (corrData.labels && corrData.matrix) {
-      const heatmapCanvas = document.getElementById('heatmapChart');
-      const ctx = heatmapCanvas.getContext('2d');
-      
+    if (corrData.labels && corrData.matrix && corrData.labels.length > 0) {
+      const canvas = document.getElementById('heatmapChart');
+      const ctx = canvas.getContext('2d');
       const labels = corrData.labels;
       const matrix = corrData.matrix;
       const cellSize = 36;
       const labelWidth = 100;
       const totalSize = cellSize * labels.length;
       
-      heatmapCanvas.width = totalSize + labelWidth + 20;
-      heatmapCanvas.height = totalSize + labelWidth + 20;
-      heatmapCanvas.style.width = (totalSize + labelWidth + 20) + 'px';
-      heatmapCanvas.style.height = (totalSize + labelWidth + 20) + 'px';
+      canvas.width = totalSize + labelWidth + 20;
+      canvas.height = totalSize + labelWidth + 20;
+      canvas.style.width = (totalSize + labelWidth + 20) + 'px';
+      canvas.style.height = (totalSize + labelWidth + 20) + 'px';
       
-      // Column labels (top, rotated)
       ctx.fillStyle = '#64748b';
       ctx.font = '9px Plus Jakarta Sans, sans-serif';
       ctx.textAlign = 'left';
@@ -343,35 +308,33 @@
         ctx.restore();
       });
       
-      // Row labels (left)
       ctx.textAlign = 'right';
       labels.forEach((label, i) => {
         ctx.fillText(label.substring(0, 14), labelWidth - 8, labelWidth + (i * cellSize) + cellSize/2 + 3);
       });
       
-      // Draw cells
       for (let i = 0; i < labels.length; i++) {
         for (let j = 0; j < labels.length; j++) {
           const value = matrix[i][j];
           const x = labelWidth + (j * cellSize);
           const y = labelWidth + (i * cellSize);
           
+          const intensity = Math.abs(value);
           let r, g, b;
           if (value >= 0) {
-            r = Math.round(255 - (255-239) * value);
-            g = Math.round(255 - (255-68) * value);
-            b = Math.round(255 - (255-68) * value);
+            r = Math.round(255 - (255-34) * intensity);
+            g = Math.round(255 - (255-139) * intensity);
+            b = Math.round(255 - (255-34) * intensity);
           } else {
-            const absVal = Math.abs(value);
-            r = Math.round(255 - (255-59) * absVal);
-            g = Math.round(255 - (255-130) * absVal);
-            b = Math.round(255 - (255-246) * absVal);
+            r = Math.round(34 + (255-34) * intensity);
+            g = Math.round(139 + (255-139) * intensity);
+            b = Math.round(34 + (255-34) * intensity);
           }
           
           ctx.fillStyle = `rgb(${r},${g},${b})`;
           ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
           
-          ctx.fillStyle = Math.abs(value) > 0.5 ? '#fff' : '#1e293b';
+          ctx.fillStyle = intensity > 0.5 ? '#fff' : '#1e293b';
           ctx.font = 'bold 8px Plus Jakarta Sans, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(value.toFixed(1), x + cellSize/2, y + cellSize/2 + 3);
@@ -381,19 +344,7 @@
   }
 
   function updateCharts() {
-    window.location.href = `{{ url_for('analysis_page') }}?station=${document.getElementById('station-select').value}`;
-  }
-
-  function exportData() {
-    let csv = 'Date,AQI,Category,Temp Max,Temp Min,Rain %,Humidity,Wind,Advisory\n';
-    {% for day in analysis_data.forecast_days[:5] %}
-    csv += '{{ day.date }},{{ day.aqi }},{{ day.category }},{{ day.temp_max }},{{ day.temp_min }},{{ day.precipitation }},{{ day.humidity }},{{ day.wind_speed }},"{{ day.health_advisory }}"\n';
-    {% endfor %}
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'ecoaware_forecast.csv';
-    a.click();
+    window.location.href = '{{ url_for('analysis_page') }}?station=' + document.getElementById('station-select').value;
   }
 
   document.addEventListener('DOMContentLoaded', initCharts);
