@@ -672,78 +672,69 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
         },
     }
 
-
 def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
-    station_rows = get_station_latest_table()
+    csv_rows = get_station_latest_table()
+    live_aqis = get_all_stations_live_aqi()
 
-    # DEFAULT → city average
+    station_rows = []
+    for row in csv_rows:
+        live_aqi = live_aqis.get(row["station"])
+        display_aqi = int(live_aqi) if isinstance(live_aqi, (int, float)) else row["aqi"]
+        station_rows.append({
+            "station":      row["station"],
+            "aqi":          display_aqi,
+            "status":       classify_aqi(float(display_aqi)),
+            "advice":       advice_for_aqi(float(display_aqi)),
+            "latest_date":  row["latest_date"],
+            "color":        get_aqi_color(float(display_aqi)),
+            "status_class": get_status_class(float(display_aqi)),
+        })
+    station_rows.sort(key=lambda x: x["aqi"], reverse=True)
+
     if selected_station is None or selected_station == "all":
-        station_coordinates = STATION_COORDINATES.get("Delhi", {"lat": 28.61, "lng": 77.23})
-        weather = get_station_weather_snapshot(
-            "Delhi",
-            station_coordinates.get("lat"),
-            station_coordinates.get("lng"),
-        )
+        coords = STATION_COORDINATES.get("Delhi", {"lat": 28.61, "lng": 77.23})
+        weather = get_station_weather_snapshot("Delhi", coords.get("lat"), coords.get("lng"))
         air_quality = weather.get("air_quality", {})
         live_aqi = air_quality.get("aqi")
-
-        if isinstance(live_aqi, (int, float)):
-            current_aqi = int(live_aqi)
-        else:
-            current_aqi = round(
-                sum(row["aqi"] for row in station_rows) / len(station_rows), 1
-            ) if station_rows else 0
-
+        current_aqi = int(live_aqi) if isinstance(live_aqi, (int, float)) else (
+            int(round(sum(r["aqi"] for r in station_rows) / len(station_rows))) if station_rows else 0
+        )
         current_status = classify_aqi(current_aqi)
         current_label = "City Average"
         selected_station = "all"
-
     else:
         selected = next((s for s in station_rows if s["station"] == selected_station), None)
-        station_coordinates = STATION_COORDINATES.get(selected_station, {})
-        weather = get_station_weather_snapshot(
-            selected_station,
-            station_coordinates.get("lat"),
-            station_coordinates.get("lng"),
-        )
+        coords = STATION_COORDINATES.get(selected_station, {})
+        weather = get_station_weather_snapshot(selected_station, coords.get("lat"), coords.get("lng"))
         air_quality = weather.get("air_quality", {})
         live_aqi = air_quality.get("aqi")
-
-        if isinstance(live_aqi, (int, float)):
-            current_aqi = int(live_aqi)
-        elif selected:
-            current_aqi = selected["aqi"]
-        else:
-            current_aqi = 0
-
+        current_aqi = int(live_aqi) if isinstance(live_aqi, (int, float)) else (selected["aqi"] if selected else 0)
         current_status = classify_aqi(current_aqi)
         current_label = selected["station"] if selected else "Unknown"
 
-    # ── Build pollutant dicts for aqi.html template ──
     current_pollutants = {
-        "pm25": air_quality.get("pm25"),
+        "pm25": air_quality.get("pm2_5"),
         "pm10": air_quality.get("pm10"),
-        "no2":  air_quality.get("no2"),
-        "so2":  air_quality.get("so2"),
-        "co":   air_quality.get("co"),
-        "o3":   air_quality.get("o3"),
+        "no2":  air_quality.get("nitrogen_dioxide"),
+        "so2":  air_quality.get("sulphur_dioxide"),
+        "co":   air_quality.get("carbon_monoxide"),
+        "o3":   air_quality.get("ozone"),
     }
 
     _pred = build_prediction_payload()
     predicted = {
         "aqi":    _pred["tomorrow"],
         "status": classify_aqi(_pred["tomorrow"]),
-        
     }
 
     return {
-        "station_rows": station_rows,
-        "selected_station": selected_station,
-        "current_aqi": current_aqi,
-        "current_status": current_status,
-        "current_label": current_label,
-        "current_pollutants": current_pollutants,  # ← naya
-        "predicted": predicted,                     # ← naya
+        "station_rows":       station_rows,
+        "selected_station":   selected_station,
+        "current_aqi":        current_aqi,
+        "current_status":     current_status,
+        "current_label":      current_label,
+        "current_pollutants": current_pollutants,
+        "predicted":          predicted,
         "policy_note": (
             f"{station_rows[0]['station']} currently has the highest AQI."
             if station_rows else "No AQI data available."
@@ -757,8 +748,6 @@ def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
             {"range": "401+",    "label": "Severe",       "color": "#7a0019"},
         ],
     }
-
-
 def get_contact_page_context() -> dict[str, Any]:
     prediction = build_prediction_payload()
     return {
