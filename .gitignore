@@ -76,3 +76,7 @@ dist/
 
 node_modules/
 package-lock.json
+.env
+.env.*
+*.env
+token.env

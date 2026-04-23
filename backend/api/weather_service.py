@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import urlencode
 from urllib.request import urlopen
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=r"D:\ecoaware-project\backend\api\token.env")
 
+
+WAQI_TOKEN = os.getenv("WAQI_TOKEN", "")   # ← set this from config/env later
+
+print(f"Token loaded: '{WAQI_TOKEN}'")
 WAQI_GEO_BASE_URL = "https://api.waqi.info/feed/geo:{lat};{lng}/?token={token}"
-WAQI_TOKEN = "5bb7bdd214ac544ed93f42564857c93d4f5a0b92"   # ← set this from config/env later
+ # ← set this from config/env later
 
 FORECAST_BASE_URL = "https://api.open-meteo.com/v1/forecast"
 AIR_QUALITY_BASE_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"

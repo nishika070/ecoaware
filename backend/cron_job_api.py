@@ -3,12 +3,15 @@ import datetime
 import os
 import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=r"D:\ecoaware-project\backend\api\token.env")
+
 
 from api.station_map import STATION_COORDINATES  # <-- your local file
+WAQI_TOKEN = os.getenv("WAQI_TOKEN", "")
 
 WAQI_GEO_BASE_URL = "https://api.waqi.info/feed/geo:{lat};{lng}/?token={token}"
 FORECAST_BASE_URL = "https://api.open-meteo.com/v1/forecast"
-WAQI_TOKEN = "YOUR_WAQI_TOKEN_HERE"
 CSV_FILE = "data_history.csv"
 
 
