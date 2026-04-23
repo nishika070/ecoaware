@@ -84,6 +84,7 @@ body {
   margin: 0 0 10px;
   font-size: 0.76rem;
   font-weight: 700;
+  color: black !important;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -143,7 +144,7 @@ body {
 .policy-hero .eyebrow,
 .policy-hero .metric-label,
 .policy-hero .metric-note {
-  color: rgba(241, 252, 247, 0.76);
+  color: black;
 }
 
 /* ── hero metrics ───────────────────────────────────────── */
