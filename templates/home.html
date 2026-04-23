@@ -42,6 +42,10 @@
       <section class="hero-row">
         <article class="glass-panel hero-panel">
           <div class="hero-temp-line">
+            <!-- Clouds background -->
+            <video class="hero-clouds" autoplay muted loop playsinline>
+<!-- agar static/ mein seedha save ki hai -->
+<source src="{{ url_for('static', filename='clouds.webm') }}" type="video/webm" />          </video>
             <div class="hero-temp">{{ home_weather.temperature_c|round|int if home_weather.temperature_c is not none else '--' }}<span>C</span></div>
             <div class="hero-condition">
               <p class="condition-title">{{ home_weather.condition or "Condition unavailable" }}</p>

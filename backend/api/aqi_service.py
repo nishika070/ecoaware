@@ -434,6 +434,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     map_min_aqi = min((row["aqi"] for row in station_rows), default=0)
     map_max_aqi = max((row["aqi"] for row in station_rows), default=0)
 
+
     if station_name is None:
         station_name = selected_station or "No station data"
         station_series = pd.DataFrame(columns=["date", "aqi"])
@@ -487,12 +488,10 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     live_category = classify_aqi(float(live_us_aqi)) if live_us_aqi is not None else city_payload["category"]
     live_advice = advice_for_aqi(float(live_us_aqi)) if live_us_aqi is not None else city_payload["advice"]
     live_aqi_numeric = float(live_us_aqi) if live_us_aqi is not None else latest_station_aqi
-    today_max_temp = today_forecast.get("max_temp_c")  # ← fixed key
-    today_min_temp = today_forecast.get("min_temp_c")  # ← fixed key
+    today_max_temp = today_forecast.get("max_temp")  # ← fixed key
+    today_min_temp = today_forecast.get("min_temp")  # ← fixed key
     visibility_m = current_weather.get("visibility_m")
     visibility_km = round(float(visibility_m) / 1000, 1) if visibility_m is not None else None
-    print("LIVE AQI: ", live_us_aqi)
-
     return {
         "stations": available_stations,
         "selected_station": station_name,
@@ -620,7 +619,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
             "precip_mm": current_weather.get("precip_mm"),
             "cloud_cover_percent": current_weather.get("cloud_cover_percent"),
             "visibility_km": visibility_km,
-            "pressure_hpa": current_weather.get("pressure_hpa"),  # ← fixed key
+            "pressure_hpa": current_weather.get("pressure_hpa"),  
             "uv_index": today_forecast.get("uv_index"),
             "aqi": int(round(live_aqi_numeric)),
             "aqi_label": live_category,
@@ -696,12 +695,7 @@ def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
     predicted = {
         "aqi":    _pred["tomorrow"],
         "status": classify_aqi(_pred["tomorrow"]),
-        "pm25":   air_quality.get("pm25"),
-        "pm10":   air_quality.get("pm10"),
-        "no2":    air_quality.get("no2"),
-        "so2":    air_quality.get("so2"),
-        "co":     air_quality.get("co"),
-        "o3":     air_quality.get("o3"),
+        
     }
 
     return {
@@ -724,55 +718,6 @@ def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
             {"range": "301-400", "label": "Very Poor",    "color": "#d55353"},
             {"range": "401+",    "label": "Severe",       "color": "#7a0019"},
         ],
-    }
-
-
-def get_temperature_page_context(selected_station: str | None = None) -> dict[str, Any]:
-    available_stations = get_available_stations()
-    station_name = resolve_station_name(selected_station) or (selected_station or "No station data")
-    station_coordinates = STATION_COORDINATES.get(station_name, {})
-    weather = get_station_weather_snapshot(
-        station_name,
-        station_coordinates.get("lat"),
-        station_coordinates.get("lng"),
-    )
-
-    current_weather = weather.get("current", {})
-    forecast_days = weather.get("forecast_days", [])
-    air_quality = weather.get("air_quality", {})
-
-    max_day = (
-        max(
-            forecast_days,
-            key=lambda item: item["max_temp_c"] if item.get("max_temp_c") is not None else float("-inf"),
-        )
-        if forecast_days else None
-    )
-    wettest_day = (
-        max(
-            forecast_days,
-            key=lambda item: item["precip_probability"] if item.get("precip_probability") is not None else float("-inf"),
-        )
-        if forecast_days else None
-    )
-
-    return {
-        "stations": available_stations,
-        "selected_station": station_name,
-        "current_weather": current_weather,
-        "air_quality": air_quality,
-        "forecast_days": forecast_days,
-        "max_day": max_day,
-        "wettest_day": wettest_day,
-        "weather_error": weather.get("source_error"),
-        "fetched_at": weather.get("fetched_at"),
-        "forecast_chart": {
-            "labels": [item["day_label"] for item in forecast_days],
-            "max_temps": [item.get("max_temp_c") for item in forecast_days],  # ← fixed key
-            "min_temps": [item.get("min_temp_c") for item in forecast_days],  # ← fixed key
-            "precip_chance": [item["precip_probability"] for item in forecast_days],
-        },
-        "note": "Temperature, precipitation and pollutant data are live from Open-Meteo and WAQI APIs.",
     }
 
 
@@ -862,7 +807,6 @@ def load_station_daily_aqi() -> pd.DataFrame:
     frame["display_station"] = frame["Location"].apply(format_station_name)
     frame["aqi"] = frame["AQI"].round(2)
     frame["temperature"] = frame["T2M"].round(2)
-
     return frame.sort_values(["display_station", "date"]).reset_index(drop=True)
 
 
