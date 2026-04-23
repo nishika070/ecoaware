@@ -85,3 +85,39 @@ WS10M, WS10M_MAX, WS10M_MIN, PS
 
 
 PREPROCESSING 2
+
+
+
+
+
+Here's your dataset — 1,000 rows with realistic Delhi climate + AQI patterns. Here's everything you need to use it:
+
+---
+
+Policy encoding dictionary:
+
+policy_map = {
+    0:  "No immediate action required",
+    1:  "Water sprinklers",
+    2:  "Odd even vehicles",
+    3:  "GRAP 3/4",
+    4:  "Run industrial checks for fire ash and dust control measures + fine imposition",
+    5:  "Suspend outdoor activities in schools + online/work from home for schools, colleges and offices",
+    6:  "Suspend construction activities temporarily",
+    7:  "Temporary water distribution points",                          # Heatwave
+    8:  "Pre-emptive closure of vulnerable roads and metro stations",   # Flood
+    9:  "Controlled release from reservoirs to prevent overflow",       # Flood
+    10: "Distribution of blankets and warm clothing for unhoused populations",  # Cold wave
+    11: "Suspension of port/airport operations",                        # Storm/Cyclone
+    12: "Deployment of emergency power backup systems",                 # Storm/Cyclone
+}
+
+
+| T2M ≥ 42°C | Heatwave (7) |
+| T2M ≤ 5°C | Cold wave (10) |
+| Precip ≥ 50 + Wind ≥ 8 | Storm (11 or 12) |
+| Precip ≥ 30 | Flood (8 or 9) |
+| AQI 101–200 | Sprinklers if no sprinkler present (1) |
+| AQI 201–300 | Industrial checks (4) or Odd-even (2) |
+| AQI 301–400 | GRAP / construction suspension (3, 6) |
+| AQI > 400 | GRAP 3/4 or school suspension (3, 5) |
