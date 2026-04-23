@@ -488,3 +488,178 @@ body {
     font-size: 0.88rem;
   }
 }
+
+/* ============================================================
+   NEW — CITY POLICY (PRIMARY DECISION LAYER)
+   ============================================================ */
+
+.city-policy-highlight {
+  margin-top: 22px;
+}
+
+.city-policy-card {
+  padding: 26px;
+  border-radius: 30px;
+  background:
+    linear-gradient(135deg, rgba(181, 71, 67, 0.08), rgba(255, 250, 238, 0.95));
+  border: 1px solid rgba(181, 71, 67, 0.18);
+  box-shadow: var(--policy-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle glow */
+.city-policy-card::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 260px;
+  height: 260px;
+  background: rgba(181, 71, 67, 0.12);
+  border-radius: 50%;
+  filter: blur(18px);
+}
+
+.policy-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--policy-alert);
+  margin-bottom: 10px;
+}
+
+.policy-main {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 2.5vw, 2.6rem);
+  color: var(--policy-ink);
+  margin: 0 0 8px;
+}
+
+.policy-meta {
+  color: var(--policy-muted);
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+}
+
+/* confidence bar */
+.confidence-bar {
+  height: 8px;
+  background: rgba(25, 52, 47, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b54743, #d96b67);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.confidence-text {
+  font-size: 0.85rem;
+  color: var(--policy-muted);
+  margin-top: 6px;
+}
+
+
+/* ============================================================
+   NEW — POLICY RANKING STRIP
+   ============================================================ */
+
+.policy-ranking-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0 26px;
+}
+
+.policy-pill {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(47, 111, 98, 0.08);
+  color: var(--policy-accent-deep);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+}
+
+.policy-pill:hover {
+  transform: translateY(-2px);
+}
+
+.policy-pill.top {
+  background: linear-gradient(135deg, #b54743, #cf5c58);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(181, 71, 67, 0.25);
+}
+
+.pill-meta {
+  opacity: 0.8;
+  font-size: 0.75rem;
+}
+
+
+/* ============================================================
+   NEW — STATION SNAPSHOT (MINIMAL VIEW)
+   ============================================================ */
+
+.station-snapshot {
+  margin-top: 26px;
+}
+
+.station-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.station-card {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--policy-card);
+  border: 1px solid var(--policy-line);
+  transition: all 0.25s ease;
+}
+
+.station-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--policy-shadow);
+}
+
+.station-card h4 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  color: var(--policy-ink);
+}
+
+.station-aqi {
+  font-size: 0.82rem;
+  color: var(--policy-muted);
+}
+
+.station-policy {
+  margin-top: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--policy-accent-deep);
+}
+
+
+/* ============================================================
+   RESPONSIVE EXTENSIONS
+   ============================================================ */
+
+@media (max-width: 720px) {
+  .policy-main {
+    font-size: 1.6rem;
+  }
+
+  .station-grid {
+    grid-template-columns: 1fr;
+  }
+}

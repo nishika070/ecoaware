@@ -4,7 +4,6 @@
 
 {% block page_head %}
   <link rel="stylesheet" href="{{ url_for('static', filename='policy_insights.css') }}" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -50,6 +49,50 @@
     </section>
 
     <!-- ══════════════════════════════════════════
+         CITY-WIDE POLICY DECISION (PRIMARY)
+    ══════════════════════════════════════════ -->
+    <section class="city-policy-highlight">
+      {% if majority_policy %}
+      <div class="city-policy-card">
+        <p class="policy-label">City-wide recommended action</p>
+
+        <h2 class="policy-main">
+          {{ majority_policy.label }}
+        </h2>
+
+        <p class="policy-meta">
+          Supported by {{ majority_policy.station_support }} out of {{ stations | length }} stations
+          ({{ (majority_policy.support_ratio * 100) | round(0) }}% coverage)
+        </p>
+
+        <div class="confidence-bar">
+          <div class="confidence-fill"
+              style="width: {{ (majority_policy.avg_confidence * 100) | round(0) }}%">
+          </div>
+        </div>
+
+        <p class="confidence-text">
+          Avg confidence: {{ (majority_policy.avg_confidence * 100) | round(0) }}%
+        </p>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         POLICY RANKING (SECONDARY SIGNAL)
+    ══════════════════════════════════════════ -->
+    <section class="policy-ranking-strip">
+      {% for policy in city_policy_ranking[:4] %}
+        <div class="policy-pill {% if loop.index == 1 %}top{% endif %}">
+          <span class="pill-label">{{ policy.label }}</span>
+          <span class="pill-meta">
+            {{ policy.station_support }} stations
+          </span>
+        </div>
+      {% endfor %}
+    </section>
+
+    <!-- ══════════════════════════════════════════
          SUMMARY STRIP
     ══════════════════════════════════════════ -->
     <section class="summary-strip">
@@ -70,6 +113,27 @@
         <h3>{{ month_focus_label }} yearly comparison</h3>
         <p>{{ month_focus_note }}</p>
       </article>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         STATION SNAPSHOT (LIGHTWEIGHT)
+    ══════════════════════════════════════════ -->
+    <section class="station-snapshot">
+      <div class="section-heading">
+        <p class="section-kicker">Section 0</p>
+        <h2>Station-level signals</h2>
+        <p>Quick overview of dominant policy triggers per station.</p>
+      </div>
+
+      <div class="station-grid">
+        {% for station, info in stations.items() %}
+          <div class="station-card">
+            <h4>{{ station }}</h4>
+            <p class="station-aqi">AQI: {{ info.AQI | round(0) }}</p>
+            <p class="station-policy">{{ info.top_policy }}</p>
+          </div>
+        {% endfor %}
+      </div>
     </section>
 
     <!-- ══════════════════════════════════════════
@@ -103,46 +167,6 @@
               <li>{{ item }}</li>
             {% endfor %}
           </ul>
-        </article>
-      </div>
-
-      <div class="chart-grid">
-        <article class="chart-card">
-          <div class="chart-copy">
-            <p class="chart-kicker">Year-wise monthly view</p>
-            <h3>{{ month_focus_label }} average temperature by year</h3>
-            <p>{{ month_focus_note }}</p>
-          </div>
-          <div class="chart-wrap">
-            {% if show_temperature_charts %}
-            <canvas id="temperatureMonthlyChart"
-              role="img"
-              aria-label="Bar chart of average temperature for {{ month_focus_label }} across years">
-              Year-wise average temperature for {{ month_focus_label }}.
-            </canvas>
-            {% else %}
-            <div class="chart-warning" role="note">{{ temperature_chart_warning }}</div>
-            {% endif %}
-          </div>
-        </article>
-
-        <article class="chart-card">
-          <div class="chart-copy">
-            <p class="chart-kicker">Rolling daily view</p>
-            <h3>Last 30 days temperature</h3>
-            <p>{{ last_30_days_note }}</p>
-          </div>
-          <div class="chart-wrap">
-            {% if show_temperature_charts %}
-            <canvas id="temperature30DaysChart"
-              role="img"
-              aria-label="Line chart of daily temperature readings over the last 30 days">
-              Daily temperature trend over the past 30 days.
-            </canvas>
-            {% else %}
-            <div class="chart-warning" role="note">{{ temperature_chart_warning }}</div>
-            {% endif %}
-          </div>
         </article>
       </div>
     </section>
@@ -180,133 +204,6 @@
           </ul>
         </article>
       </div>
-
-      <div class="chart-grid">
-        <article class="chart-card">
-          <div class="chart-copy">
-            <p class="chart-kicker">Year-wise monthly view</p>
-            <h3>{{ month_focus_label }} average AQI by year</h3>
-            <p>{{ month_focus_note }}</p>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="aqiMonthlyChart"
-              role="img"
-              aria-label="Bar chart of average AQI for {{ month_focus_label }} across years">
-              Year-wise average AQI for {{ month_focus_label }}.
-            </canvas>
-          </div>
-        </article>
-
-        <article class="chart-card">
-          <div class="chart-copy">
-            <p class="chart-kicker">Rolling daily view</p>
-            <h3>Last 30 days AQI</h3>
-            <p>{{ last_30_days_note }}</p>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="aqi30DaysChart"
-              role="img"
-              aria-label="Line chart of daily AQI readings over the last 30 days">
-              Daily AQI trend over the past 30 days.
-            </canvas>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════
-         SECTION 3 — PREDICTION ACCURACY
-    ══════════════════════════════════════════ -->
-    <section class="accuracy-section">
-      <div class="section-heading">
-        <p class="section-kicker">Section 3</p>
-        <h2>AQI prediction accuracy</h2>
-        <p>
-          Checks next-day forecast quality by comparing the previous day's model
-          prediction with the following day's actual AQI.
-        </p>
-      </div>
-
-      <div class="accuracy-grid">
-        <article class="accuracy-card">
-          <p>MAE</p>
-          <h3>{{ mae }}</h3>
-          <span>Average absolute AQI error</span>
-        </article>
-
-        <article class="accuracy-card">
-          <p>RMSE</p>
-          <h3>{{ rmse }}</h3>
-          <span>Higher penalty for large misses</span>
-        </article>
-
-        <article class="accuracy-card">
-          <p>R² Score</p>
-          <h3>{{ r2_score }}</h3>
-          <span>Explained variance on holdout data</span>
-        </article>
-
-        <article class="accuracy-card">
-          <p>Policy Accuracy</p>
-          <h3>{{ classification_accuracy }}</h3>
-          <span>How often the predicted policy band matched</span>
-        </article>
-      </div>
-
-      <article class="accuracy-panel">
-        <div class="accuracy-meta">
-          <div>
-            <p class="meta-label">Training window</p>
-            <h3>{{ training_data_period }}</h3>
-          </div>
-          <div>
-            <p class="meta-label">Test window</p>
-            <h3>{{ test_data_period }}</h3>
-          </div>
-          <div>
-            <p class="meta-label">Latest resolved actual</p>
-            <h3>{{ last_updated }}</h3>
-          </div>
-        </div>
-
-        <div class="table-shell">
-          <table class="accuracy-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Previous day prediction</th>
-                <th>Actual AQI</th>
-                <th>Error</th>
-                <th>Error %</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for comparison in prediction_comparisons %}
-                <tr>
-                  <td>{{ comparison.date }}</td>
-                  <td>{{ comparison.predicted }}</td>
-                  <td>{{ comparison.actual }}</td>
-                  <td>{{ comparison.error }}</td>
-                  <td>{{ comparison.error_percent }}%</td>
-                </tr>
-              {% else %}
-                <tr>
-                  <td colspan="5" style="text-align:center; color:var(--policy-muted); padding:20px 12px;">
-                    No prediction records available yet.
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-
-        {% if no_historical_predictions %}
-          <p class="empty-state">
-            Historical next-day forecast comparisons will appear automatically
-            once enough resolved day-to-day records are available.
-          </p>
-        {% endif %}
-      </article>
     </section>
 
     <!-- ══════════════════════════════════════════
@@ -320,102 +217,6 @@
   </main>
 {% endblock %}
 
-
 {% block page_scripts %}
-  <script>
-    /* ── shared defaults ─────────────────────────────────── */
-    Chart.defaults.font.family = "Georgia, 'Times New Roman', serif";
-    Chart.defaults.color = "#5c746d";
-
-    const GRID  = "rgba(25, 52, 47, 0.08)";
-    const TICKS = "#4c635d";
-
-    const sharedScales = {
-      x: { ticks: { color: TICKS }, grid: { color: GRID } },
-      y: { ticks: { color: TICKS }, grid: { color: GRID } }
-    };
-
-    /* ── factory: handles both line and bar cleanly ──────── */
-    function buildChart(canvasId, cfg) {
-      const el = document.getElementById(canvasId);
-      if (!el) return;
-
-      const isBar = cfg.type === "bar";
-
-      new Chart(el.getContext("2d"), {
-        type: cfg.type || "line",
-        data: {
-          labels: cfg.labels,
-          datasets: [{
-            label:           cfg.label,
-            data:            cfg.data,
-            borderColor:     cfg.borderColor,
-            backgroundColor: cfg.backgroundColor,
-            borderWidth:     2,
-            fill:            !isBar,
-            tension:         isBar ? undefined : 0.35,
-            pointRadius:     isBar ? undefined : 3,
-            pointHoverRadius:isBar ? undefined : 5,
-            borderRadius:    isBar ? 6 : undefined,
-            borderSkipped:   isBar ? false : undefined
-          }]
-        },
-        options: {
-          responsive:           true,
-          maintainAspectRatio:  false,
-          plugins: {
-            legend: {
-              labels: {
-                color: "#224d44",
-                font: { family: "Georgia, serif", size: 12 }
-              }
-            }
-          },
-          scales: sharedScales
-        }
-      });
-    }
-
-    /* ── 1. Temperature — year-wise monthly (bar) ─────────── */
-    if ({{ show_temperature_charts | tojson }}) {
-    buildChart("temperatureMonthlyChart", {
-      type:            "bar",
-      labels:          {{ temp_monthly_labels | tojson }},
-      data:            {{ temp_monthly_data   | tojson }},
-      label:           "Avg temperature (°C)",
-      borderColor:     "#c96b2c",
-      backgroundColor: "rgba(201, 107, 44, 0.28)"
-    });
-
-    /* ── 2. Temperature — last 30 days (line) ─────────────── */
-    buildChart("temperature30DaysChart", {
-      type:            "line",
-      labels:          {{ temp_30days_labels | tojson }},
-      data:            {{ temp_30days_data   | tojson }},
-      label:           "Temperature (°C)",
-      borderColor:     "#d98d3c",
-      backgroundColor: "rgba(217, 141, 60, 0.15)"
-    });
-    }
-
-    /* ── 3. AQI — year-wise monthly (bar) ─────────────────── */
-    buildChart("aqiMonthlyChart", {
-      type:            "bar",
-      labels:          {{ aqi_monthly_labels | tojson }},
-      data:            {{ aqi_monthly_data   | tojson }},
-      label:           "Avg AQI",
-      borderColor:     "#9d3d38",
-      backgroundColor: "rgba(157, 61, 56, 0.28)"
-    });
-
-    /* ── 4. AQI — last 30 days (line) ─────────────────────── */
-    buildChart("aqi30DaysChart", {
-      type:            "line",
-      labels:          {{ aqi_30days_labels | tojson }},
-      data:            {{ aqi_30days_data   | tojson }},
-      label:           "AQI",
-      borderColor:     "#b54743",
-      backgroundColor: "rgba(181, 71, 67, 0.15)"
-    });
-  </script>
+  <!-- Chart.js library and graph scripts have been removed -->
 {% endblock %}

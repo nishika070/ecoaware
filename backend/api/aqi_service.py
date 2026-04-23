@@ -8,7 +8,7 @@ import sys
 import os
 import pickle
 import numpy as np
-
+import json
 import pandas as pd
 import joblib
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -1215,6 +1215,14 @@ def get_station_30day_chart(station_name: str) -> dict[str, Any]:
         "forecast_labels": forecast_labels,
         "forecast": forecast_values,
     }
+
+
+def load_policy_predictions():
+    if not os.path.exists("predictions.json"):
+        return None
+    with open("predictions.json", "r") as f:
+        return json.load(f)
+    
 def get_policies_page_context() -> dict[str, Any]:
     daily = load_daily_aqi()
     station_rows = get_station_latest_table()
@@ -1291,6 +1299,39 @@ def get_policies_page_context() -> dict[str, Any]:
         temp_monthly_labels, temp_monthly_data = [], []
         temp_30days_labels, temp_30days_data = [], []
 
+    # ─────────────────────────────────────────
+    # LOAD CITY-WIDE POLICY OUTPUT ... policy has been updated
+    # ─────────────────────────────────────────
+    policy_json_path = "predictions.json"
+
+    majority_policy = None
+    city_policy_ranking = []
+    stations = {}
+
+    if os.path.exists(policy_json_path):
+        try:
+            with open(policy_json_path, "r", encoding="utf-8") as f:
+                policy_data = json.load(f)
+
+            majority_policy = policy_data.get("majority_policy")
+            city_policy_ranking = policy_data.get("city_policy_ranking", [])
+            stations = policy_data.get("stations", {})
+
+        except Exception as e:
+            print(f"[policy] Failed to load predictions.json: {e}")
+
+    # Convert station dict → template-friendly list
+    station_insights = []
+    if isinstance(stations, dict):
+        for name, data in stations.items():
+            station_insights.append({
+                "name": name,
+                "aqi": data.get("aqi"),
+                "policy": data.get("policy"),
+                "policy_level": data.get("policy_level"),
+            })
+
+    
     return {
         "current_temperature": format_number(current_temperature) if current_temperature is not None else "Unavailable",
         "temperature_note": temperature_note,
@@ -1354,4 +1395,8 @@ def get_policies_page_context() -> dict[str, Any]:
         "top_station_status": latest_station_row["status"],
         "show_temperature_charts": not temperature_history_unreliable,
         "temperature_chart_warning": temperature_chart_warning,
+        # new additons here..
+        "majority_policy": majority_policy,
+        "city_policy_ranking": city_policy_ranking,
+        "stations": stations,
     }

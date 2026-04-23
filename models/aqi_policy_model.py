@@ -13,6 +13,8 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.preprocessing import MultiLabelBinarizer
+from collections import Counter
+
 
 from station_map import STATION_COORDINATES
 
@@ -280,17 +282,72 @@ def predict_all(waqi_token: str) -> None:
 
         time.sleep(0.3)   # polite rate-limiting
 
+    # ─────────────────────────────────────────────
+    # AGGREGATE CITY-WIDE POLICY SIGNAL
+    # ─────────────────────────────────────────────
+    policy_counter = Counter()
+    policy_confidence_sum = Counter()
+
+    for station, info in results.items():
+        for p in info["policies"]:
+            pid = p["id"]
+            policy_counter[pid] += 1
+            policy_confidence_sum[pid] += p["confidence"]
+
+    total_stations = len(results)
+
+    city_policies = []
+    for pid, count in policy_counter.items():
+        avg_conf = policy_confidence_sum[pid] / count
+
+        city_policies.append({
+            "id": pid,
+            "label": POLICY_MAP[pid],
+            "station_support": count,
+            "support_ratio": round(count / total_stations, 2),
+            "avg_confidence": round(avg_conf, 3),
+        })
+
+    # Sort by importance:
+    # 1. most stations supporting
+    # 2. then highest confidence
+    city_policies = sorted(
+        city_policies,
+        key=lambda x: (x["station_support"], x["avg_confidence"]),
+        reverse=True
+    )
+
+    majority_policy = city_policies[0] if city_policies else None
+
+    # ─────────────────────────────────────────────
+    # MINIMAL STATION OUTPUT (for UI)
+    # ─────────────────────────────────────────────
+    simplified_stations = {}
+
+    for station, info in results.items():
+        simplified_stations[station] = {
+            "AQI": info["live_data"]["AQI"],
+            "top_policy": info["policies"][0]["label"] if info["policies"] else "None"
+        }
+
+
     output = {
         "generated_at": timestamp,
-        "policy_map":   POLICY_MAP,
-        "stations":     results,
+        "majority_policy": majority_policy,
+        "city_policy_ranking": city_policies,
+        "stations": simplified_stations
     }
 
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
 
     print(f"\n[predict] Results written → {OUTPUT_JSON}")
-    _print_summary(results)
+
+    # summary maybe...
+    print("\nCITY-WIDE POLICY RECOMMENDATION")
+    if majority_policy:
+        print(f"➡ {majority_policy['label']} "
+              f"(supported by {majority_policy['station_support']}/{total_stations} stations)")
 
 
 def _print_summary(results: dict) -> None:
