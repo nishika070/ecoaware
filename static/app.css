@@ -369,3 +369,100 @@ tbody tr:hover {
     white-space: nowrap;
   }
 }
+/* ========== PLAN YOUR DAY CARD ========== */
+.plan-card {
+  background: linear-gradient(135deg, #f0f9ff, #e6f7f5);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
+}
+
+.plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.plan-header h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.plan-icon {
+  font-size: 28px;
+}
+
+.plan-aqi-summary {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: 12px 16px;
+  margin: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-left: 4px solid;
+}
+
+.plan-aqi-summary.good { border-left-color: var(--good); }
+.plan-aqi-summary.satisfactory { border-left-color: var(--satisfactory); }
+.plan-aqi-summary.moderate { border-left-color: var(--moderate); }
+.plan-aqi-summary.poor { border-left-color: var(--poor); }
+.plan-aqi-summary.very-poor { border-left-color: var(--very-poor); }
+.plan-aqi-summary.severe { border-left-color: var(--severe); }
+
+.plan-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.plan-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.plan-status {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 99px;
+}
+
+.plan-recommendation {
+  margin-top: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  background: rgba(255,255,240,0.6);
+  padding: 12px;
+  border-radius: var(--r-md);
+}
+
+.plan-recommendation strong {
+  color: var(--primary-dark);
+}
+
+.plan-tip {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+}
