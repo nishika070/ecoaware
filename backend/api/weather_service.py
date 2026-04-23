@@ -107,20 +107,8 @@ def _fetch_waqi_geo(lat: float, lon: float) -> dict[str, Any]:
     except Exception:
         return {"status": "error"}
     
-def _debug_waqi(lat: float, lon: float) -> None:
-    url = WAQI_GEO_BASE_URL.format(lat=lat, lng=lon, token=WAQI_TOKEN)
-    with urlopen(url, timeout=12) as response:
-        data = json.loads(response.read().decode("utf-8"))
-    
-    d = data.get("data", {})
-    print("\n=== WAQI DEBUG ===")
-    print(f"Station : {d.get('city', {}).get('name')}")
-    print(f"AQI     : {d.get('aqi')}")
-    print(f"iaqi    : {d.get('iaqi')}")
-    print("==================\n")
-# Ye line sabse neeche dal do, function ke baahir
 
-_debug_waqi(28.6469, 77.3161)  # NSIT Dwarka coords dal sakte ho bhi
+
 def get_station_weather_snapshot(
     station_name: str,
     lat: float | None,

@@ -21,6 +21,7 @@
 
         <nav class="top-links">
           <a href="{{ url_for('aqi_page') }}" class="{% if active_page == 'aqi' %}active{% endif %}">AQI</a>
+          <a href="{{ url_for('analysis_page') }}" class="{% if active_page == 'analysis' %}active{% endif %}">Analysis</a>
           <a href="{{ url_for('policies_page') }}" class="{% if active_page == 'policies' %}active{% endif %}">Policy Insights</a>
           <a href="{{ url_for('contact_page') }}" class="{% if active_page == 'contact' %}active{% endif %}">Contact</a>
         </nav>
