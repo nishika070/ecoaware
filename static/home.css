@@ -922,3 +922,278 @@
 ::-webkit-scrollbar-track  { background: var(--neutral-100); }
 ::-webkit-scrollbar-thumb  { background: var(--eco-200); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--eco-400); }
+/* ─────────────────────────────────────────
+   HOURLY PANEL - IMPROVED STYLING
+───────────────────────────────────────── */
+.hourly-panel { 
+  padding: 24px; 
+}
+
+.hourly-panel h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--neutral-700);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hourly-panel h2::before {
+  content: '⏱️';
+  font-size: 1.1rem;
+}
+
+.hourly-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+}
+
+.hourly-strip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.hourly-strip::-webkit-scrollbar-track {
+  background: var(--neutral-100);
+  border-radius: 4px;
+}
+
+.hourly-strip::-webkit-scrollbar-thumb {
+  background: var(--eco-400);
+  border-radius: 4px;
+}
+
+.hourly-item {
+  min-width: 85px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(248,250,252,0.9));
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(39,160,101,0.15);
+  border-radius: 20px;
+  padding: 14px 8px;
+  text-align: center;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.hourly-item:hover {
+  transform: translateY(-4px);
+  background: linear-gradient(145deg, #ffffff, var(--eco-50));
+  border-color: var(--eco-300);
+  box-shadow: 0 8px 20px rgba(39,160,101,0.12);
+}
+
+.hourly-time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.hourly-temp {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--neutral-800);
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.hourly-temp small {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--neutral-400);
+}
+
+.hourly-rain {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--sky-500);
+  background: rgba(42,159,214,0.08);
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.hourly-condition {
+  font-size: 0.7rem;
+  color: var(--neutral-500);
+  margin-top: 6px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .hourly-item {
+    min-width: 75px;
+    padding: 10px 6px;
+  }
+  
+  .hourly-temp {
+    font-size: 1.2rem;
+  }
+  
+  .hourly-time {
+    font-size: 0.65rem;
+  }
+}
+/* ─────────────────────────────────────────
+   HOURLY PANEL - IMPROVED STYLING
+───────────────────────────────────────── */
+.hourly-panel { 
+  padding: 24px; 
+}
+
+.hourly-panel h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--neutral-700);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hourly-panel h2::before {
+  content: '⏱️';
+  font-size: 1.1rem;
+}
+
+.hourly-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+}
+
+.hourly-strip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.hourly-strip::-webkit-scrollbar-track {
+  background: var(--neutral-100);
+  border-radius: 4px;
+}
+
+.hourly-strip::-webkit-scrollbar-thumb {
+  background: var(--eco-400);
+  border-radius: 4px;
+}
+
+.hourly-item {
+  min-width: 85px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(248,250,252,0.9));
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(39,160,101,0.15);
+  border-radius: 20px;
+  padding: 14px 8px;
+  text-align: center;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.hourly-item:hover {
+  transform: translateY(-4px);
+  background: linear-gradient(145deg, #ffffff, var(--eco-50));
+  border-color: var(--eco-300);
+  box-shadow: 0 8px 20px rgba(39,160,101,0.12);
+}
+
+.hourly-time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.hourly-temp {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--neutral-800);
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.hourly-temp small {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--neutral-400);
+}
+
+.hourly-rain {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--sky-500);
+  background: rgba(42,159,214,0.08);
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.hourly-condition {
+  font-size: 0.7rem;
+  color: var(--neutral-500);
+  margin-top: 6px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .hourly-item {
+    min-width: 75px;
+    padding: 10px 6px;
+  }
+  
+  .hourly-temp {
+    font-size: 1.2rem;
+  }
+  
+  .hourly-time {
+    font-size: 0.65rem;
+  }
+}
+/* Hero row - left panel normal, right panel slightly smaller */
+.hero-row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr;  /* right panel thoda chota */
+  gap: 20px;
+}
+
+/* Hourly panel grid: 4 columns, rows auto */
+.hourly-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);  /* 4 columns */
+  gap: 12px;
+  padding-bottom: 0;
+  overflow-x: visible;
+}
+
+/* Hourly item styling - fixed width nahi, grid ke hisaab se */
+.hourly-item {
+  min-width: 0;  /* grid ke andar fit ho */
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(4px);
+  border-radius: 20px;
+  padding: 12px 8px;
+  text-align: center;
+  border: 1px solid rgba(39,160,101,0.2);
+  transition: all 0.2s;
+}
+
+/* Responsive: mobile pe 2 columns */
+@media (max-width: 640px) {
+  .hourly-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hero-row {
+    grid-template-columns: 1fr;  /* mobile pe full width */
+  }
+}

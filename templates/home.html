@@ -44,18 +44,19 @@
           <div class="hero-temp-line">
             <!-- Clouds background -->
             <video class="hero-clouds" autoplay muted loop playsinline>
-<!-- agar static/ mein seedha save ki hai -->
-<source src="{{ url_for('static', filename='clouds.webm') }}" type="video/webm" />          </video>
-            <div class="hero-temp">{{ home_weather.temperature_c|round|int if home_weather.temperature_c is not none else '--' }}<span>C</span></div>
+              <source src="{{ url_for('static', filename='clouds.webm') }}" type="video/webm" />
+            </video>
+            <!-- ✅ CHANGE 1: C → °C -->
+            <div class="hero-temp">{{ home_weather.temperature_c|round|int if home_weather.temperature_c is not none else '--' }}<span>°C</span></div>
             <div class="hero-condition">
               <p class="condition-title">{{ home_weather.condition or "Condition unavailable" }}</p>
-              <p>Feels like: {{ home_weather.feels_like_c|round|int if home_weather.feels_like_c is not none else '--' }} C</p>
+              <p>Feels like: {{ home_weather.feels_like_c|round|int if home_weather.feels_like_c is not none else '--' }}°C</p>
               <p>Rain chance: {{ home_weather.rain_probability|round|int if home_weather.rain_probability is not none else '--' }}%</p>
             </div>
           </div>
           <div class="hero-meta-row">
-            <span>High {{ home_weather.temp_max_today|round|int if home_weather.temp_max_today is not none else '--' }} C</span>
-            <span>Low {{ home_weather.temp_min_today|round|int if home_weather.temp_min_today is not none else '--' }} C</span>
+            <span>High {{ home_weather.temp_max_today|round|int if home_weather.temp_max_today is not none else '--' }}°C</span>
+            <span>Low {{ home_weather.temp_min_today|round|int if home_weather.temp_min_today is not none else '--' }}°C</span>
             <span>Humidity {{ home_weather.humidity_percent|round|int if home_weather.humidity_percent is not none else '--' }}%</span>
           </div>
           <div class="aqi-chip {{ home_weather.aqi_class }}">
@@ -66,17 +67,23 @@
           {% endif %}
         </article>
 
-        <article class="glass-panel hourly-panel">
-          <h2>Hourly Snapshot</h2>
-          <div class="hourly-strip">
-            {% for item in hourly_preview %}
-              <div class="hourly-item">
-                <span>{{ item.label }}</span>
-                <strong>{{ item.temp_c|round|int if item.temp_c is not none else '--' }} C</strong>
-              </div>
-            {% endfor %}
-          </div>
-        </article>
+       <article class="glass-panel hourly-panel">
+  <h2>Hourly Snapshot</h2>
+  <div class="hourly-strip">
+    {% for item in hourly_preview %}
+      <div class="hourly-item">
+        <div class="hourly-time">{{ item.label }}</div>
+        <div class="hourly-temp">
+          {{ item.temp_c|round|int if item.temp_c is not none else '--' }}<small>°C</small>
+        </div>
+        <div class="hourly-rain">
+          🌧️ {{ item.precip_probability|round|int if item.precip_probability is not none else '0' }}%
+        </div>
+        
+      </div>
+    {% endfor %}
+  </div>
+</article>
       </section>
 
       <section class="metrics-grid">
@@ -113,12 +120,7 @@
       </section>
 
       <section class="bottom-grid">
-        <article class="glass-panel trend-panel">
-          <h2>Station AQI Trend</h2>
-          <div class="chart-wrap">
-            <canvas id="homeTrendChart"></canvas>
-          </div>
-        </article>
+        <!-- ✅ CHANGE 2: Chart section REMOVED -->
 
         <article class="glass-panel map-wrap">
           <div class="map-head">
@@ -136,17 +138,18 @@
                 <span><i style="background:#e67e22"></i> 201–300 Poor</span>
                 <span><i style="background:#d55353"></i> 301–400 Very Poor</span>
                 <span><i style="background:#7a0019"></i> 401+ Severe</span>
-  </div>
+              </div>
             </aside>
           </div>
         </article>
       </section>
-    <!-- Image Credit -->
-    <a href="/free-video/sunrise-sunset-mountain-landscape_3544728#fromView=search&amp;page=1&amp;position=0&amp;uuid=245fe5a2-053f-4e25-99ae-d315f12a154a" 
-   target="_blank" 
-   rel="noopener noreferrer">
-   BaldasaridStock on Freepik
-    </a>
+
+      <!-- Image Credit -->
+      <a href="/free-video/sunrise-sunset-mountain-landscape_3544728#fromView=search&amp;page=1&amp;position=0&amp;uuid=245fe5a2-053f-4e25-99ae-d315f12a154a" 
+         target="_blank" 
+         rel="noopener noreferrer">
+         BaldasaridStock on Freepik
+      </a>
     </div>
   </main>
 {% endblock %}

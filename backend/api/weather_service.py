@@ -106,6 +106,21 @@ def _fetch_waqi_geo(lat: float, lon: float) -> dict[str, Any]:
         return data
     except Exception:
         return {"status": "error"}
+    
+def _debug_waqi(lat: float, lon: float) -> None:
+    url = WAQI_GEO_BASE_URL.format(lat=lat, lng=lon, token=WAQI_TOKEN)
+    with urlopen(url, timeout=12) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    
+    d = data.get("data", {})
+    print("\n=== WAQI DEBUG ===")
+    print(f"Station : {d.get('city', {}).get('name')}")
+    print(f"AQI     : {d.get('aqi')}")
+    print(f"iaqi    : {d.get('iaqi')}")
+    print("==================\n")
+# Ye line sabse neeche dal do, function ke baahir
+
+_debug_waqi(28.6469, 77.3161)  # NSIT Dwarka coords dal sakte ho bhi
 def get_station_weather_snapshot(
     station_name: str,
     lat: float | None,
@@ -197,7 +212,7 @@ def get_station_weather_snapshot(
             }
         )
 
-    # ============ 2. FETCH WAQI AQI (instead of Open‑Meteo air‑quality) ============
+    # ============ 2. FETCH WAQI AQI (with capping) ============
     try:
         waqi_data = _fetch_waqi_geo(lat, lon)
     except Exception:
@@ -208,10 +223,13 @@ def get_station_weather_snapshot(
         data = waqi_data["data"]
         iaqi = data.get("iaqi", {})
         obs_time = data.get("time", {}).get("s", "Unknown")
-
-        # WAQI returns raw pollutant values and overall AQI
+        
+        # Get raw AQI and cap it to 500
+        raw_aqi = data.get("aqi")
+        capped_aqi = min(raw_aqi, 500) if raw_aqi is not None else None
+        
         air_quality = {
-            "aqi": data.get("aqi"),
+            "aqi": capped_aqi,  # ← Capped to 500
             "pm2_5": (iaqi.get("pm25") or {}).get("v"),
             "pm10": (iaqi.get("pm10") or {}).get("v"),
             "nitrogen_dioxide": (iaqi.get("no2") or {}).get("v"),

@@ -165,8 +165,7 @@ if __name__ == "__main__":
     scheduler.add_job(
         fetch_and_write_row,
         "cron",
-        hour="*",
-        minute=26,
+        minute="*/5",
         second=0,
     )
     print("Scheduler started; will run every hour at HH:00:00 UTC.")
