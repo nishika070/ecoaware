@@ -127,7 +127,7 @@ body {
   max-width: 11ch;
   color: #f8fff9;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.25rem, 4.2vw, 4rem);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
   line-height: 0.96;
   letter-spacing: -0.03em;
 }
@@ -167,7 +167,7 @@ body {
   margin: 0 0 6px;
   font-size: clamp(1.6rem, 2.2vw, 2.2rem);
   line-height: 1;
-  color: #ffffff;
+  color: black !important;
   font-family: Georgia, "Times New Roman", serif;
 }
 

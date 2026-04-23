@@ -105,12 +105,7 @@
   </section>
 
   <!-- Station evidence -->
-  <section class="station-snapshot">
-    <div class="section-heading">
-      <p class="section-kicker">Station evidence</p>
-      <h2>Where intervention pressure is highest</h2>
-      <p>Station-level AQI readings and dominant policy classifications across Delhi.</p>
-    </div>
+  
 
     {% if station_insights %}
     <div class="station-grid">
@@ -134,10 +129,7 @@
       </article>
       {% endfor %}
     </div>
-    {% else %}
-    <div class="empty-state">
-      No station-level policy output is available right now.
-    </div>
+    
     {% endif %}
   </section>
 
