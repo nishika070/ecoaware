@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+import time  # ← YEH ADD KARO
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -27,6 +27,9 @@ except ImportError:
     DecisionTree = None
 
 
+_live_aqi_cache: dict = {}
+_live_aqi_cache_time: float = 0
+_LIVE_AQI_TTL = 600
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATASET_PATH = BASE_DIR / "datasets" / "Merged_all_readable.csv"
 DATASET_SCALED_PATH = BASE_DIR / "datasets" / "Merged_all_scaled.csv"
@@ -407,7 +410,38 @@ def get_station_latest_table() -> list[dict[str, Any]]:
         )
 
     return results
-
+def get_all_stations_live_aqi() -> dict[str, int | None]:
+    global _live_aqi_cache, _live_aqi_cache_time
+    
+    if time.time() - _live_aqi_cache_time < _LIVE_AQI_TTL and _live_aqi_cache:
+        return _live_aqi_cache
+    
+    station_rows = get_station_latest_table()
+    results: dict[str, int | None] = {}
+    
+    def fetch_one(station_name: str):
+        coords = STATION_COORDINATES.get(station_name, {})
+        weather = get_station_weather_snapshot(
+            station_name,
+            coords.get("lat"),
+            coords.get("lng"),
+        )
+        aqi = weather.get("air_quality", {}).get("aqi")
+        return station_name, (int(aqi) if isinstance(aqi, (int, float)) else None)
+    
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {executor.submit(fetch_one, row["station"]): row["station"]
+                   for row in station_rows}
+        for future in as_completed(futures):
+            try:
+                name, aqi = future.result(timeout=8)
+                results[name] = aqi
+            except Exception:
+                results[futures[future]] = None
+    
+    _live_aqi_cache = results
+    _live_aqi_cache_time = time.time()
+    return results
 
 def get_monthly_pattern() -> list[dict[str, Any]]:
     station_daily = load_station_daily_aqi().copy()
@@ -467,15 +501,18 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     print(air_quality)
     live_us_aqi = air_quality.get("aqi")
     today_forecast = forecast_days[0] if forecast_days else {}
+    live_station_aqis = get_all_stations_live_aqi()
+
     for row in station_rows:
         coordinates = STATION_COORDINATES.get(row["station"])
         if not coordinates:
             continue
-
-        # Dataset AQI use karo — no extra API call
-        display_aqi = row["aqi"]
-        display_status = row["status"]
-
+    
+        # Prefer live AQI, fall back to dataset AQI
+        live_aqi = live_station_aqis.get(row["station"])
+        display_aqi = live_aqi if live_aqi is not None else row["aqi"]
+        display_status = classify_aqi(float(display_aqi))
+    
         hotspot_markers.append({
             "name": row["station"],
             "aqi": display_aqi,
