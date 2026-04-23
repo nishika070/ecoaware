@@ -11,6 +11,7 @@ import numpy as np
 
 import pandas as pd
 import joblib
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from station_map import STATION_COORDINATES
 from weather_service import get_station_weather_snapshot
@@ -466,24 +467,27 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     print(air_quality)
     live_us_aqi = air_quality.get("aqi")
     today_forecast = forecast_days[0] if forecast_days else {}
-
     for row in station_rows:
         coordinates = STATION_COORDINATES.get(row["station"])
         if not coordinates:
             continue
-        hotspot_markers.append(
-            {
-                "name": row["station"],
-                "aqi": row["aqi"],
-                "status": row["status"],
-                "advice": row["advice"],
-                "latest_date": row["latest_date"],
-                "lat": coordinates["lat"],
-                "lng": coordinates["lng"],
-                "color": get_relative_spread_color(float(row["aqi"]), float(map_min_aqi), float(map_max_aqi)),
-                "relative_label": get_relative_spread_label(float(row["aqi"]), float(map_min_aqi), float(map_max_aqi)),
-            }
-        )
+
+        # Dataset AQI use karo — no extra API call
+        display_aqi = row["aqi"]
+        display_status = row["status"]
+
+        hotspot_markers.append({
+            "name": row["station"],
+            "aqi": display_aqi,
+            "status": display_status,
+            "advice": advice_for_aqi(display_aqi),
+            "latest_date": row["latest_date"],
+            "lat": coordinates["lat"],
+            "lng": coordinates["lng"],
+            "color": get_aqi_color(display_aqi),
+            "radius": min(6 + display_aqi / 40, 22),
+        })
+    
 
     live_category = classify_aqi(float(live_us_aqi)) if live_us_aqi is not None else city_payload["category"]
     live_advice = advice_for_aqi(float(live_us_aqi)) if live_us_aqi is not None else city_payload["advice"]
@@ -491,6 +495,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     today_max_temp = today_forecast.get("max_temp")  # ← fixed key
     today_min_temp = today_forecast.get("min_temp")  # ← fixed key
     visibility_m = current_weather.get("visibility_m")
+    
     visibility_km = round(float(visibility_m) / 1000, 1) if visibility_m is not None else None
     return {
         "stations": available_stations,
@@ -541,11 +546,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
                 "note": "Coverage from the latest Delhi AQI dataset snapshot",
             },
         ],
-        "chart": {
-            "labels": history["date"].dt.strftime("%d %b").tolist(),
-            "aqi_values": history["aqi"].round().astype(int).tolist(),
-            "prediction": city_payload["tomorrow"],
-        },
+        "chart": get_station_30day_chart(station_name),
         "advisory": {
             "headline": f"{station_name}: {current_weather.get('condition', 'Current weather')}",
             "tag": live_advice,
@@ -1124,7 +1125,59 @@ def build_prediction_payload() -> dict[str, Any]:
         "health_suggestion": advice_for_aqi(predicted_tomorrow),
     }
 
+def get_station_30day_chart(station_name: str) -> dict[str, Any]:
+    station_series = get_station_series(station_name)
 
+    if station_series.empty:
+        return {"labels": [], "actual": [], "smoothed": [], "forecast": [], "forecast_labels": []}
+
+    last30 = station_series.tail(30).copy()
+    actual = last30["aqi"].round(1).tolist()
+    labels = last30["date"].dt.strftime("%d %b").tolist()
+
+    # Rolling smooth (window=3, center=True)
+    smoothed = last30["aqi"].rolling(window=3, center=True, min_periods=1).mean().round(1).tolist()
+
+    # Next 4 days forecast
+    daily = load_daily_aqi()
+    model, _ = load_or_train_model()
+    feature_columns = get_feature_columns()
+    training_frame = build_training_frame(daily)
+
+    forecast_values = []
+    forecast_labels = []
+
+    if not training_frame.empty:
+        last_row = training_frame.iloc[-1].copy()
+        last_date = last30["date"].iloc[-1]
+
+        for i in range(1, 5):
+            pred = float(np.clip(
+                model.predict(last_row[feature_columns].to_frame().T)[0], 0, 500
+            ))
+            forecast_values.append(round(pred, 1))
+            forecast_labels.append(
+                (last_date + pd.Timedelta(days=i)).strftime("%d %b")
+            )
+            # Slide window forward
+            last_row["lag_7"] = last_row["lag_3"]
+            last_row["lag_3"] = last_row["lag_2"]
+            last_row["lag_2"] = last_row["lag_1"]
+            last_row["lag_1"] = pred
+            last_row["rolling_mean_3"] = np.mean([pred, last_row["lag_2"], last_row["lag_3"]])
+            last_row["rolling_mean_7"] = last_row["rolling_mean_7"] * 0.85 + pred * 0.15
+            last_row["month"] = (last_date + pd.Timedelta(days=i)).month
+            last_row["day"] = (last_date + pd.Timedelta(days=i)).day
+            last_row["day_of_week"] = (last_date + pd.Timedelta(days=i)).dayofweek
+            last_row["day_of_year"] = (last_date + pd.Timedelta(days=i)).timetuple().tm_yday
+
+    return {
+        "labels": labels,
+        "actual": actual,
+        "smoothed": smoothed,
+        "forecast_labels": forecast_labels,
+        "forecast": forecast_values,
+    }
 def get_policies_page_context() -> dict[str, Any]:
     daily = load_daily_aqi()
     station_rows = get_station_latest_table()
