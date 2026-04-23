@@ -7,216 +7,198 @@
 {% endblock %}
 
 {% block content %}
-  <main class="policy-insights-page">
+<main class="policy-insights-page">
 
-    <!-- ══════════════════════════════════════════
-         HERO
-    ══════════════════════════════════════════ -->
-    <section class="policy-hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Delhi policy intelligence</p>
-        <h1>Policy Insights for current weather and AQI</h1>
-        <p class="hero-text">
-          Track next-day AQI forecast, and practical response suggestions in a single policy view.
-        </p>
-      </div>
+  <!-- Hero -->
+  <section class="policy-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Delhi policy intelligence</p>
+      <h1>Recommended city response for current air conditions</h1>
+      <p class="hero-text">
+        A decision-first view of current AQI, temperature pressure, forecast signal, and station-level policy triggers across Delhi.
+      </p>
+    </div>
 
-      <div class="hero-metrics">
-        <article class="metric-card">
-          <p class="metric-label">Current Temperature</p>
-          <h2>{{ current_temperature }} °C</h2>
-          <p class="metric-note">{{ temperature_note }}</p>
-        </article>
-
-        <article class="metric-card">
-          <p class="metric-label">Current AQI</p>
-          <h2 style="color: {{ aqi_color }}">{{ current_aqi }}</h2>
-          <p class="metric-note">{{ aqi_category }}</p>
-        </article>
-
-        <article class="metric-card">
-          <p class="metric-label">Forecast AQI</p>
-          <h2>{{ forecast_aqi }}</h2>
-          <p class="metric-note">{{ forecast_model_name }} next-day outlook</p>
-        </article>
-
-        <article class="metric-card">
-          <p class="metric-label">AQI MAE</p>
-          <h2>{{ mae_error }}</h2>
-          <p class="metric-note">Average next-day prediction error</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════
-         CITY-WIDE POLICY DECISION (PRIMARY)
-    ══════════════════════════════════════════ -->
-    <section class="city-policy-highlight">
-      {% if majority_policy %}
-      <div class="city-policy-card">
-        <p class="policy-label">City-wide recommended action</p>
-
-        <h2 class="policy-main">
-          {{ majority_policy.label }}
-        </h2>
-
-        <p class="policy-meta">
-          Supported by {{ majority_policy.station_support }} out of {{ stations | length }} stations
-          ({{ (majority_policy.support_ratio * 100) | round(0) }}% coverage)
-        </p>
-
-        <div class="confidence-bar">
-          <div class="confidence-fill"
-              style="width: {{ (majority_policy.avg_confidence * 100) | round(0) }}%">
-          </div>
-        </div>
-
-        <p class="confidence-text">
-          Avg confidence: {{ (majority_policy.avg_confidence * 100) | round(0) }}%
-        </p>
-      </div>
-      {% endif %}
-    </section>
-
-    <!-- ══════════════════════════════════════════
-         POLICY RANKING (SECONDARY SIGNAL)
-    ══════════════════════════════════════════ -->
-    <section class="policy-ranking-strip">
-      {% for policy in city_policy_ranking[:4] %}
-        <div class="policy-pill {% if loop.index == 1 %}top{% endif %}">
-          <span class="pill-label">{{ policy.label }}</span>
-          <span class="pill-meta">
-            {{ policy.station_support }} stations
-          </span>
-        </div>
-      {% endfor %}
-    </section>
-
-    <!-- ══════════════════════════════════════════
-         SUMMARY STRIP
-    ══════════════════════════════════════════ -->
-    <section class="summary-strip">
-      <article class="summary-card">
-        <p class="summary-label">Current response</p>
-        <h3>{{ policy_level_name }}</h3>
-        <p>{{ policy_insight }}</p>
+    <div class="hero-metrics">
+      <article class="metric-card">
+        <p class="metric-label">Current AQI</p>
+        <h2 style="color: {{ aqi_color }}">{{ current_aqi }}</h2>
+        <p class="metric-note">{{ aqi_category }}</p>
       </article>
 
-      <article class="summary-card">
-        <p class="summary-label">Highest pressure station</p>
-        <h3>{{ top_station_name }}</h3>
-        <p>AQI {{ top_station_aqi }} and currently marked as {{ top_station_status }}.</p>
+      <article class="metric-card">
+        <p class="metric-label">Forecast AQI</p>
+        <h2>{{ forecast_aqi }}</h2>
+        <p class="metric-note">{{ forecast_model_name }}</p>
       </article>
 
-      <article class="summary-card">
-        <p class="summary-label">Chart logic</p>
-        <h3>{{ month_focus_label }} yearly comparison</h3>
-        <p>{{ month_focus_note }}</p>
+      <article class="metric-card emphasis">
+        <p class="metric-label">Current Response</p>
+        <h2>{{ policy_level_name }}</h2>
+        <p class="metric-note">{{ policy_insight }}</p>
       </article>
-    </section>
+    </div>
+  </section>
 
-    <!-- ══════════════════════════════════════════
-         STATION SNAPSHOT (LIGHTWEIGHT)
-    ══════════════════════════════════════════ -->
-    <section class="station-snapshot">
-      <div class="section-heading">
-        <p class="section-kicker">Section 0</p>
-        <h2>Station-level signals</h2>
-        <p>Quick overview of dominant policy triggers per station.</p>
+  <!-- City-wide recommendation -->
+  {% if majority_policy %}
+  <section class="city-policy-highlight">
+    <div class="city-policy-card">
+      <p class="policy-label">City-wide recommended action</p>
+      <h2 class="policy-main">{{ majority_policy.label }}</h2>
+      <p class="policy-meta">
+        Supported by {{ majority_policy.station_support }} out of {{ station_insights|length }} stations
+        ({{ (majority_policy.support_ratio * 100) | round(0) }}% coverage)
+      </p>
+
+      <div class="confidence-bar">
+        <div class="confidence-fill"
+             style="width: {{ (majority_policy.avg_confidence * 100) | round(0) }}%"></div>
       </div>
 
-      <div class="station-grid">
-        {% for station, info in stations.items() %}
-          <div class="station-card">
-            <h4>{{ station }}</h4>
-            <p class="station-aqi">AQI: {{ info.AQI | round(0) }}</p>
-            <p class="station-policy">{{ info.top_policy }}</p>
-          </div>
-        {% endfor %}
-      </div>
-    </section>
+      <p class="confidence-text">
+        Average confidence: {{ (majority_policy.avg_confidence * 100) | round(0) }}%
+      </p>
+    </div>
+  </section>
+  {% endif %}
 
-    <!-- ══════════════════════════════════════════
-         SECTION 1 — TEMPERATURE INSIGHTS
-    ══════════════════════════════════════════ -->
-    <section class="insight-section">
-      <div class="section-heading">
-        <p class="section-kicker">Section 1</p>
-        <h2>Temperature insights</h2>
-        <p>{{ temperature_insight }}</p>
-      </div>
+  <!-- Secondary ranking -->
+  {% if city_policy_ranking %}
+  <section class="summary-strip">
+    {% for policy in city_policy_ranking[:3] %}
+    <article class="summary-card">
+      <p class="summary-label">
+        {% if loop.index == 1 %}Most supported action{% else %}Alternative action{% endif %}
+      </p>
+      <h3>{{ policy.label }}</h3>
+      <p>
+        Backed by {{ policy.station_support }} stations
+        {% if policy.support_ratio is defined %}
+          ({{ (policy.support_ratio * 100) | round(0) }}% support)
+        {% endif %}
+      </p>
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
 
-      <div class="panel-grid">
-        <article class="insight-panel">
-          <div class="panel-badge warm">Policy</div>
-          <h3>{{ temperature_policy_title }}</h3>
-          <p class="panel-summary">{{ temperature_policy_summary }}</p>
-          <ul>
-            {% for item in temperature_policy_items %}
-              <li>{{ item }}</li>
-            {% endfor %}
-          </ul>
-        </article>
+  <!-- Why this action -->
+  <section class="summary-strip">
+    <article class="summary-card">
+      <p class="summary-label">Current temperature</p>
+      <h3>{{ current_temperature }} °C</h3>
+      <p>{{ temperature_note }}</p>
+    </article>
 
-        <article class="insight-panel">
-          <div class="panel-badge neutral">Health</div>
-          <h3>{{ temperature_health_title }}</h3>
-          <p class="panel-summary">{{ temperature_health_summary }}</p>
-          <ul>
-            {% for item in temperature_health_items %}
-              <li>{{ item }}</li>
-            {% endfor %}
-          </ul>
-        </article>
-      </div>
-    </section>
+    <article class="summary-card">
+      <p class="summary-label">Highest pressure station</p>
+      <h3>{{ top_station_name }}</h3>
+      <p>AQI {{ top_station_aqi }} and currently marked as {{ top_station_status }}.</p>
+    </article>
 
-    <!-- ══════════════════════════════════════════
-         SECTION 2 — AQI INSIGHTS
-    ══════════════════════════════════════════ -->
-    <section class="insight-section">
-      <div class="section-heading">
-        <p class="section-kicker">Section 2</p>
-        <h2>AQI insights</h2>
-        <p>{{ aqi_insight }}</p>
-      </div>
-
-      <div class="panel-grid">
-        <article class="insight-panel">
-          <div class="panel-badge alert">Policy</div>
-          <h3>{{ aqi_policy_title }}</h3>
-          <p class="panel-summary">{{ aqi_policy_summary }}</p>
-          <ul>
-            {% for item in aqi_policy_items %}
-              <li>{{ item }}</li>
-            {% endfor %}
-          </ul>
-        </article>
-
-        <article class="insight-panel">
-          <div class="panel-badge safe">Health</div>
-          <h3>{{ aqi_health_title }}</h3>
-          <p class="panel-summary">{{ aqi_health_summary }}</p>
-          <ul>
-            {% for item in aqi_health_items %}
-              <li>{{ item }}</li>
-            {% endfor %}
-          </ul>
-        </article>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════
-         CLOSING NOTE
-    ══════════════════════════════════════════ -->
-    <section class="closing-note">
-      <h2>Operational takeaway</h2>
+    <article class="summary-card">
+      <p class="summary-label">Forecast context</p>
+      <h3>{{ aqi_category }}</h3>
       <p>{{ general_recommendation }}</p>
-    </section>
+    </article>
+  </section>
 
-  </main>
+  <!-- Station evidence -->
+  <section class="station-snapshot">
+    <div class="section-heading">
+      <p class="section-kicker">Station evidence</p>
+      <h2>Where intervention pressure is highest</h2>
+      <p>Station-level AQI readings and dominant policy classifications across Delhi.</p>
+    </div>
+
+    {% if station_insights %}
+    <div class="station-grid">
+      {% for station in station_insights %}
+      <article class="station-card">
+        <h4>{{ station.name }}</h4>
+        <p class="station-aqi">
+          AQI:
+          {% if station.aqi is not none %}
+            {{ station.aqi | round(0) }}
+          {% else %}
+            Unavailable
+          {% endif %}
+        </p>
+        <p class="station-policy">
+          {{ station.policy or "No policy available" }}
+        </p>
+        {% if station.policy_level is not none %}
+        <p class="station-aqi">Policy level: {{ station.policy_level }}</p>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      No station-level policy output is available right now.
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- Action split -->
+  <section class="response-grid">
+    <article class="insight-panel">
+      <div class="panel-badge alert">Authority response</div>
+      <h3>{{ aqi_policy_title }}</h3>
+      <p class="panel-summary">{{ aqi_policy_summary }}</p>
+      <ul>
+        {% for item in aqi_policy_items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="insight-panel">
+      <div class="panel-badge safe">Public health guidance</div>
+      <h3>{{ aqi_health_title }}</h3>
+      <p class="panel-summary">{{ aqi_health_summary }}</p>
+      <ul>
+        {% for item in aqi_health_items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+  </section>
+
+  <!-- Optional temperature block -->
+  <section class="response-grid">
+    <article class="insight-panel">
+      <div class="panel-badge warm">Temperature policy</div>
+      <h3>{{ temperature_policy_title }}</h3>
+      <p class="panel-summary">{{ temperature_policy_summary }}</p>
+      <ul>
+        {% for item in temperature_policy_items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="insight-panel">
+      <div class="panel-badge neutral">Temperature health</div>
+      <h3>{{ temperature_health_title }}</h3>
+      <p class="panel-summary">{{ temperature_health_summary }}</p>
+      <ul>
+        {% for item in temperature_health_items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+  </section>
+
+  <!-- Closing -->
+  <section class="closing-note">
+    <h2>Operational takeaway</h2>
+    <p>{{ general_recommendation }}</p>
+  </section>
+
+</main>
 {% endblock %}
 
 {% block page_scripts %}
-  <!-- Chart.js library and graph scripts have been removed -->
 {% endblock %}
