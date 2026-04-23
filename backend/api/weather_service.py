@@ -236,7 +236,7 @@ def get_station_weather_snapshot(
             "wind_speed_kmh": current.get("wind_speed_10m"),
             "wind_direction_deg": current.get("wind_direction_10m"),
             "wind_gust_kmh": current.get("wind_gusts_10m"),
-            "surface_pressure_hpa": current.get("surface_pressure"),
+            "pressure_hpa": current.get("surface_pressure"),
             "cloud_cover_percent": current.get("cloud_cover"),
             "visibility_m": current.get("visibility"),
             "precip_mm": current.get("precipitation"),

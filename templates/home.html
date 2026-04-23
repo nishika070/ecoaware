@@ -42,6 +42,10 @@
       <section class="hero-row">
         <article class="glass-panel hero-panel">
           <div class="hero-temp-line">
+            <!-- Clouds background -->
+            <video class="hero-clouds" autoplay muted loop playsinline>
+<!-- agar static/ mein seedha save ki hai -->
+<source src="{{ url_for('static', filename='clouds.webm') }}" type="video/webm" />          </video>
             <div class="hero-temp">{{ home_weather.temperature_c|round|int if home_weather.temperature_c is not none else '--' }}<span>C</span></div>
             <div class="hero-condition">
               <p class="condition-title">{{ home_weather.condition or "Condition unavailable" }}</p>
@@ -124,15 +128,15 @@
           <div class="map-body">
             <div id="delhiHotspotMap" class="hotspot-map"></div>
             <aside class="glass-panel legend-card">
-              <h3>Spread key</h3>
+              <h3>AQI Scale</h3>
               <div class="map-legend legend-panel">
-                {% for item in map.legend %}
-                  <span>
-                    <i style="background-color: {{ item.color }};"></i>
-                        {{ item.label }}
-                  </span>
-                {% endfor %}
-              </div>
+                <span><i style="background:#2e9f57"></i> 0–50 Good</span>
+                <span><i style="background:#8abf2f"></i> 51–100 Satisfactory</span>
+                <span><i style="background:#d2a819"></i> 101–200 Moderate</span>
+                <span><i style="background:#e67e22"></i> 201–300 Poor</span>
+                <span><i style="background:#d55353"></i> 301–400 Very Poor</span>
+                <span><i style="background:#7a0019"></i> 401+ Severe</span>
+  </div>
             </aside>
           </div>
         </article>
