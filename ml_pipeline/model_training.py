@@ -6,15 +6,14 @@ Run this ONCE to train and save your AQI regressor:
 from __future__ import annotations
 import os
 import sys
+from xml.parsers.expat import model
 import numpy as np
 import joblib
 
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error, r2_score
-
+from ml_pipeline.custom_models.random_forest import RandomForest
+from ml_pipeline.custom_models.metrics import rmse, r2_score
 from utils.data_utils import load_daily_aqi, build_training_frame, get_feature_columns
 
 # ── output paths ─────────────────────────────────────────────────────────────
@@ -64,37 +63,31 @@ def train_and_save():
     print(f"Test samples  : {len(X_test)}")
 
     # ── scale ─────────────────────────────────────────────────
-    scaler = StandardScaler()
-    X_train_sc = scaler.fit_transform(X_train)
-    X_test_sc  = scaler.transform(X_test)
+    X_train_sc = X_train
+    X_test_sc = X_test
 
     # ── train ─────────────────────────────────────────────────
     print("\nTraining Random Forest Regressor …")
-    model = RandomForestRegressor(
-        n_estimators=300,
-        max_depth=None,
-        min_samples_split=4,
-        min_samples_leaf=2,
-        random_state=42,
-        n_jobs=-1,
-    )
+    model = RandomForest(
+    n_trees=100,
+    max_depth=10,
+    min_samples_split=4,
+    mode='regression'
+)
     model.fit(X_train_sc, y_train)
-
     # ── evaluate ──────────────────────────────────────────────
     y_pred = model.predict(X_test_sc)
-    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    r2     = r2_score(y_test, y_pred)
+    rmse_val = rmse(y_test, y_pred)
+    r2_val = r2_score(y_test, y_pred)
 
-    print(f"\nTest RMSE : {rmse:.2f}")
-    print(f"Test R²   : {r2:.3f}")
+    print(f"\nTest RMSE : {rmse_val:.2f}")
+    print(f"Test R²   : {r2_val:.3f}")
 
     # ── save ──────────────────────────────────────────────────
     os.makedirs(TRAINING_DIR, exist_ok=True)
     joblib.dump(model,  REGRESSOR_PATH)
-    joblib.dump(scaler, SCALER_PATH)
 
-    print(f"\n✅ Model saved  → {REGRESSOR_PATH}")
-    print(f"✅ Scaler saved → {SCALER_PATH}")
+    print(f"\n Model saved  → {REGRESSOR_PATH}")
     print("\nNow restart your Flask server.")
 
 

@@ -17,7 +17,6 @@ def _load(name):
 # Load AQI regressor (trained by model_training.py)
 # Falls back to policy model only if regressor not found
 _regressor = _load("aqi_regressor.pkl")        #your lag-based RF regressor
-_scaler    = _load("data_scaler_aqi.pkl")       # scaler for lag features
 
 if _regressor is None:
     # fallback: try policy model (will likely give wrong results but won't crash)
@@ -39,8 +38,6 @@ def predict_aqi(features: np.ndarray) -> float:
             features = features.to_numpy()
         flat_features = np.ravel(np.array(features, dtype=float))
         X = flat_features.reshape(1, -1)
-        if _scaler is not None:
-            X = _scaler.transform(X)
         if _regressor is not None:
             result = _regressor.predict(X)
             val = result[0]

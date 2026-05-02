@@ -24,7 +24,7 @@ cols_keep = [
     "WS10M_MIN",
     "PS",
     "AQI",
-    "Location",           # optional: group by station
+    "Location",           
     "hasSprinkler",
     "isIndustrial",
 ]
