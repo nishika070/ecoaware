@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=r"D:\ecoaware-project\backend\api\token.env")
 
 
-WAQI_TOKEN = os.getenv("WAQI_TOKEN", "")   # ← set this from config/env later
+WAQI_TOKEN ="5bb7bdd214ac544ed93f42564857c93d4f5a0b92"
+  # ← set this from config/env later
 
 print(f"Token loaded: '{WAQI_TOKEN}'")
 WAQI_GEO_BASE_URL = "https://api.waqi.info/feed/geo:{lat};{lng}/?token={token}"

@@ -330,91 +330,6 @@ def analysis_page():
     aqi_forecast_padded = [None] * len(aqi_hist) + forecast_values
     aqi_trend_line = aqi_smooth + forecast_values
     
-    # Correlation Heatmap
-    correlation_data = {'labels': [], 'matrix': []}
-    
-    try:
-        from pathlib import Path
-        
-        BASE_DIR = Path(__file__).resolve().parents[2]
-        DATASET_SCALED_PATH = BASE_DIR / "datasets" / "Merged_all_scaled.csv"
-        
-        csv_path = str(DATASET_SCALED_PATH)
-        print(f"Loading correlation data from: {csv_path}")
-        
-        if not DATASET_SCALED_PATH.exists():
-            raise FileNotFoundError(f"File not found: {csv_path}")
-        
-        corr_df = pd.read_csv(csv_path)
-        corr_df.columns = corr_df.columns.str.strip()
-        
-        # Remove YEAR, DOY
-        all_cols = corr_df.columns.tolist()
-        exclude = ['YEAR', 'DOY']
-        feature_cols = [c for c in all_cols if c not in exclude]
-        
-        # Filter out columns with zero variance (all same value)
-        valid_cols = []
-        for col in feature_cols:
-            if corr_df[col].nunique() > 1:  # More than 1 unique value
-                valid_cols.append(col)
-            else:
-                print(f"  Skipping constant column: {col}")
-        
-        print(f"Using {len(valid_cols)} features (removed {len(feature_cols) - len(valid_cols)} constant columns)")
-        
-        # Calculate correlation
-        corr_matrix = corr_df[valid_cols].corr().round(2)
-        
-        # Clean labels
-        label_map = {
-            'T2M': 'Temperature',
-            'T2M_MAX': 'Temp Max',
-            'T2M_MIN': 'Temp Min',
-            'RH2M': 'Humidity',
-            'PRECTOTCORR': 'Rainfall',
-            'WS10M': 'Wind Speed',
-            'WS10M_MAX': 'Wind Max',
-            'WS10M_MIN': 'Wind Min',
-            'PS': 'Pressure',
-            'AQI': 'AQI',
-            'LOC': 'Location',
-            'hasSprinkler': 'Sprinklers',
-            'isIndustrial': 'Industrial'
-        }
-        
-        display_labels = [label_map.get(c, c) for c in valid_cols]
-        
-        correlation_data = {
-            'labels': display_labels,
-            'matrix': corr_matrix.values.tolist()
-        }
-        
-        print(f"✓ Correlation heatmap ready: {', '.join(display_labels)}")
-        
-    except Exception as e:
-        print(f"⚠ Correlation error: {e}")
-        import traceback
-        traceback.print_exc()
-        
-        fallback_labels = ['Temp', 'TempMax', 'TempMin', 'Humidity', 'Rainfall', 
-                          'WindSpd', 'WindMax', 'WindMin', 'Pressure', 'AQI', 
-                          'Location', 'Sprinklers', 'Industrial']
-        n = len(fallback_labels)
-        
-        import numpy as np
-        np.random.seed(42)
-        fallback_matrix = np.eye(n)
-        for i in range(n):
-            for j in range(i+1, n):
-                val = round(np.random.uniform(-0.6, 0.9), 2)
-                fallback_matrix[i][j] = val
-                fallback_matrix[j][i] = val
-        
-        correlation_data = {
-            'labels': fallback_labels,
-            'matrix': fallback_matrix.tolist()
-        }
     
     analysis_data = {
         'date_range': f"{last_15_days.iloc[0]['date'].strftime('%d %b')} - {last_15_days.iloc[-1]['date'].strftime('%d %b %Y')}" if not last_15_days.empty else "No data",
@@ -431,7 +346,6 @@ def analysis_page():
         'forecast_days': forecast_days,
         'insights': insights,
         'tips': tips,
-        'correlation': correlation_data,
         'chart_json': {
             'aqi_labels': aqi_all_labels,
             'aqi_historical': aqi_hist_padded,

@@ -132,21 +132,6 @@
       </div>
     </div>
 
-    <!-- Correlation Heatmap -->
-    <div class="glass-panel">
-      <h2 class="chart-title">Correlation Heatmap</h2>
-      <p style="color: var(--neutral-500); font-size: .85rem; margin-bottom: 16px;">
-        How different environmental factors relate to each other. Darker = stronger correlation.
-      </p>
-      <div class="heatmap-container">
-        <canvas id="heatmapChart"></canvas>
-      </div>
-      <div class="heatmap-legend">
-        <span>-1.0</span>
-        <div class="heatmap-gradient"></div>
-        <span>+1.0</span>
-      </div>
-    </div>
 
     <!-- Key Insights -->
     <div class="glass-panel">
@@ -169,11 +154,9 @@
 
 {% block page_scripts %}
 <script id="chart-data" type="application/json">{{ analysis_data.chart_json | tojson | safe }}</script>
-<script id="correlation-data" type="application/json">{{ analysis_data.correlation | tojson | safe }}</script>
 
 <script>
   const chartData = JSON.parse(document.getElementById('chart-data').textContent);
-  const corrData = JSON.parse(document.getElementById('correlation-data').textContent);
 
   function initCharts() {
     new Chart(document.getElementById('aqiChart'), {

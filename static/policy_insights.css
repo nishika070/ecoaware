@@ -181,8 +181,16 @@ body {
 .metric-card.emphasis {
   background: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08));
   border: 1px solid rgba(255,255,255,0.2);
+  font-size:0.7rem;
+}
+.metric-card.emphasis h2 {
+  font-size: 1.6rem; /* smaller than default */
+  line-height: 1.1;
 }
 
+.metric-card.emphasis .metric-note {
+  font-size: 0.8rem; /* optional: shrink description too */
+}
 /* ── city policy highlight ──────────────────────────────── */
 .city-policy-highlight {
   margin-top: var(--space-6);
@@ -546,3 +554,4 @@ body {
     transition: none;
   }
 }
+
