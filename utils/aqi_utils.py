@@ -20,7 +20,7 @@ def classify_aqi(aqi: float) -> str:
     elif aqi <= 400:
         return "Severe"
     else:
-        return "Severe+"
+        return "Severe"
 
 
 # ----------------------------------------------------------------------------
