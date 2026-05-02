@@ -8,6 +8,12 @@
 
 {% block content %}
 <main class="aqi-bg">
+  <div class="aqi-bg-layer" aria-hidden="true">
+    <video autoplay muted loop playsinline preload="metadata">
+      <source src="{{ url_for('static', filename='bg.mp4') }}" type="video/mp4" />
+    </video>
+  </div>
+  <div class="aqi-bg-overlay" aria-hidden="true"></div>
   <div class="container">
     <div class="dashboard">
 
@@ -122,7 +128,7 @@
             </div>
             <div class="station-value">{{ row.aqi }}</div>
             <div class="station-status {{ row.status | lower | replace(' ', '-') }}">
-              {{ row.status }}
+              {{ row.display_status if row.display_status is defined else row.status }}
             </div>
           </div>
           {% endfor %}

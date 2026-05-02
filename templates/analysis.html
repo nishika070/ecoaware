@@ -156,7 +156,9 @@
 <script id="chart-data" type="application/json">{{ analysis_data.chart_json | tojson | safe }}</script>
 
 <script>
-  const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+  const chartDataNode = document.getElementById('chart-data');
+  const chartData = chartDataNode ? JSON.parse(chartDataNode.textContent) : {};
+  const analysisData = window.analysis_data || {};
 
   function initCharts() {
     new Chart(document.getElementById('aqiChart'), {
@@ -266,62 +268,63 @@
       }
     });
 
-    if (corrData.labels && corrData.matrix && corrData.labels.length > 0) {
-      const canvas = document.getElementById('heatmapChart');
-      const ctx = canvas.getContext('2d');
-      const labels = corrData.labels;
-      const matrix = corrData.matrix;
-      const cellSize = 36;
-      const labelWidth = 100;
-      const totalSize = cellSize * labels.length;
-      
-      canvas.width = totalSize + labelWidth + 20;
-      canvas.height = totalSize + labelWidth + 20;
-      canvas.style.width = (totalSize + labelWidth + 20) + 'px';
-      canvas.style.height = (totalSize + labelWidth + 20) + 'px';
-      
-      ctx.fillStyle = '#64748b';
-      ctx.font = '9px Plus Jakarta Sans, sans-serif';
-      ctx.textAlign = 'left';
-      labels.forEach((label, i) => {
-        ctx.save();
-        ctx.translate(labelWidth + (i * cellSize) + cellSize/2, labelWidth - 8);
-        ctx.rotate(-Math.PI/4);
-        ctx.fillText(label.substring(0, 12), 0, 0);
-        ctx.restore();
-      });
-      
-      ctx.textAlign = 'right';
-      labels.forEach((label, i) => {
-        ctx.fillText(label.substring(0, 14), labelWidth - 8, labelWidth + (i * cellSize) + cellSize/2 + 3);
-      });
-      
-      for (let i = 0; i < labels.length; i++) {
-        for (let j = 0; j < labels.length; j++) {
-          const value = matrix[i][j];
-          const x = labelWidth + (j * cellSize);
-          const y = labelWidth + (i * cellSize);
-          
-          const intensity = Math.abs(value);
-          let r, g, b;
-          if (value >= 0) {
-            r = Math.round(255 - (255-34) * intensity);
-            g = Math.round(255 - (255-139) * intensity);
-            b = Math.round(255 - (255-34) * intensity);
-          } else {
-            r = Math.round(34 + (255-34) * intensity);
-            g = Math.round(139 + (255-139) * intensity);
-            b = Math.round(34 + (255-34) * intensity);
-          }
-          
-          ctx.fillStyle = `rgb(${r},${g},${b})`;
-          ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
-          
-          ctx.fillStyle = intensity > 0.5 ? '#fff' : '#1e293b';
-          ctx.font = 'bold 8px Plus Jakarta Sans, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(value.toFixed(1), x + cellSize/2, y + cellSize/2 + 3);
+    const corrData = analysisData.correlation_data || {};
+    const canvas = document.getElementById('heatmapChart');
+    if (!canvas || !corrData.labels || !corrData.matrix) return;
+
+    const ctx = canvas.getContext('2d');
+    const labels = corrData.labels;
+    const matrix = corrData.matrix;
+    const cellSize = 36;
+    const labelWidth = 100;
+    const totalSize = cellSize * labels.length;
+
+    canvas.width = totalSize + labelWidth + 20;
+    canvas.height = totalSize + labelWidth + 20;
+    canvas.style.width = (totalSize + labelWidth + 20) + 'px';
+    canvas.style.height = (totalSize + labelWidth + 20) + 'px';
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = '9px Plus Jakarta Sans, sans-serif';
+    ctx.textAlign = 'left';
+    labels.forEach((label, i) => {
+      ctx.save();
+      ctx.translate(labelWidth + (i * cellSize) + cellSize / 2, labelWidth - 8);
+      ctx.rotate(-Math.PI / 4);
+      ctx.fillText(label.substring(0, 12), 0, 0);
+      ctx.restore();
+    });
+
+    ctx.textAlign = 'right';
+    labels.forEach((label, i) => {
+      ctx.fillText(label.substring(0, 14), labelWidth - 8, labelWidth + (i * cellSize) + cellSize / 2 + 3);
+    });
+
+    for (let i = 0; i < labels.length; i++) {
+      for (let j = 0; j < labels.length; j++) {
+        const value = matrix[i][j];
+        const x = labelWidth + (j * cellSize);
+        const y = labelWidth + (i * cellSize);
+
+        const intensity = Math.abs(value);
+        let r, g, b;
+        if (value >= 0) {
+          r = Math.round(255 - (255 - 34) * intensity);
+          g = Math.round(255 - (255 - 139) * intensity);
+          b = Math.round(255 - (255 - 34) * intensity);
+        } else {
+          r = Math.round(34 + (255 - 34) * intensity);
+          g = Math.round(139 + (255 - 139) * intensity);
+          b = Math.round(34 + (255 - 34) * intensity);
         }
+
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+
+        ctx.fillStyle = intensity > 0.5 ? '#fff' : '#1e293b';
+        ctx.font = 'bold 8px Plus Jakarta Sans, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(value.toFixed(1), x + cellSize / 2, y + cellSize / 2 + 3);
       }
     }
   }

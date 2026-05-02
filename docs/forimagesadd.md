@@ -1,1 +1,0 @@
-<a href="/free-video/sunrise-sunset-mountain-landscape_3544728#fromView=search&page=1&position=0&uuid=245fe5a2-053f-4e25-99ae-d315f12a154a">Image by BaldasaridStock on Freepik</a>

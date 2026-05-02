@@ -22,3 +22,14 @@ STATION_COORDINATES = {
 }
 
 DEFAULT_STATION = "Anand Vihar"
+
+# validation
+if DEFAULT_STATION not in STATION_COORDINATES:
+    raise ValueError(f"Invalid DEFAULT_STATION: {DEFAULT_STATION}")
+
+
+def get_station_coords(station: str):
+    coords = STATION_COORDINATES.get(station)
+    if not coords:
+        return STATION_COORDINATES[DEFAULT_STATION]
+    return coords

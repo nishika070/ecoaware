@@ -46,82 +46,78 @@
             <video class="hero-clouds" autoplay muted loop playsinline>
               <source src="{{ url_for('static', filename='clouds.webm') }}" type="video/webm" />
             </video>
-            <!-- ✅ CHANGE 1: C → °C -->
-            <div class="hero-temp">{{ home_weather.temperature_c|round|int if home_weather.temperature_c is not none else '--' }}<span>°C</span></div>
+            <div class="hero-temp">{{ home_weather.temperature_c|round|int if (home_weather.temperature_c is defined and home_weather.temperature_c is not none) else '--' }}<span>°C</span></div>
             <div class="hero-condition">
               <p class="condition-title">{{ home_weather.condition or "Condition unavailable" }}</p>
-              <p>Feels like: {{ home_weather.feels_like_c|round|int if home_weather.feels_like_c is not none else '--' }}°C</p>
-              <p>Rain chance: {{ home_weather.rain_probability|round|int if home_weather.rain_probability is not none else '--' }}%</p>
+              <p>Feels like: {{ home_weather.feels_like_c|round|int if (home_weather.feels_like_c is defined and home_weather.feels_like_c is not none) else '--' }}°C</p>
+              <p>Rain chance: {{ home_weather.rain_probability|round|int if (home_weather.rain_probability is defined and home_weather.rain_probability is not none) else '--' }}%</p>
             </div>
           </div>
           <div class="hero-meta-row">
-            <span>High {{ home_weather.temp_max_today|round|int if home_weather.temp_max_today is not none else '--' }}°C</span>
-            <span>Low {{ home_weather.temp_min_today|round|int if home_weather.temp_min_today is not none else '--' }}°C</span>
-            <span>Humidity {{ home_weather.humidity_percent|round|int if home_weather.humidity_percent is not none else '--' }}%</span>
+            <span>High {{ home_weather.temp_max_today|round|int if (home_weather.temp_max_today is defined and home_weather.temp_max_today is not none) else '--' }}°C</span>
+            <span>Low {{ home_weather.temp_min_today|round|int if (home_weather.temp_min_today is defined and home_weather.temp_min_today is not none) else '--' }}°C</span>
+            <span>Humidity {{ home_weather.humidity_percent|round|int if (home_weather.humidity_percent is defined and home_weather.humidity_percent is not none) else '--' }}%</span>
           </div>
           <div class="aqi-chip {{ home_weather.aqi_class }}">
             {{ home_weather.aqi }} AQI | {{ home_weather.aqi_label }}
           </div>
-          {% if home_weather.updated_at %}
+          {% if home_weather.updated_at is defined and home_weather.updated_at %}
             <p class="updated-line">Last updated: {{ home_weather.updated_at }}</p>
           {% endif %}
         </article>
 
-       <article class="glass-panel hourly-panel">
-  <h2>Hourly Snapshot</h2>
-  <div class="hourly-strip">
-    {% for item in hourly_preview %}
-      <div class="hourly-item">
-        <div class="hourly-time">{{ item.label }}</div>
-        <div class="hourly-temp">
-          {{ item.temp_c|round|int if item.temp_c is not none else '--' }}<small>°C</small>
-        </div>
-        <div class="hourly-rain">
-          🌧️ {{ item.precip_probability|round|int if item.precip_probability is not none else '0' }}%
-        </div>
-        
-      </div>
-    {% endfor %}
-  </div>
-</article>
+        <article class="glass-panel hourly-panel">
+          <h2>Hourly Snapshot</h2>
+          <div class="hourly-strip">
+            {% for item in hourly_preview %}
+              <div class="hourly-item">
+                <div class="hourly-time">{{ item.label }}</div>
+                <div class="hourly-temp">
+                  {{ item.temp_c|round|int if (item.temp_c is defined and item.temp_c is not none) else '--' }}<small>°C</small>
+                </div>
+                <div class="hourly-rain">
+                  🌧️ {{ item.precip_probability|round|int if (item.precip_probability is defined and item.precip_probability is not none) else '0' }}%
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
       </section>
 
       <section class="metrics-grid">
         <article class="glass-panel metric-card">
           <h3>Wind</h3>
-          <p>{{ home_weather.wind_direction_deg|round|int if home_weather.wind_direction_deg is not none else '--' }} deg</p>
-          <span>{{ home_weather.wind_speed_kmh|round|int if home_weather.wind_speed_kmh is not none else '--' }} km/h</span>
+          <p>{{ home_weather.wind_direction_deg|round|int if (home_weather.wind_direction_deg is defined and home_weather.wind_direction_deg is not none) else '--' }} deg</p>
+          <span>{{ home_weather.wind_speed_kmh|round|int if (home_weather.wind_speed_kmh is defined and home_weather.wind_speed_kmh is not none) else '--' }} km/h</span>
         </article>
         <article class="glass-panel metric-card">
           <h3>Gust Speed</h3>
-          <p>{{ home_weather.wind_gust_kmh|round|int if home_weather.wind_gust_kmh is not none else '--' }} km/h</p>
+          <p>{{ home_weather.wind_gust_kmh|round|int if (home_weather.wind_gust_kmh is defined and home_weather.wind_gust_kmh is not none) else '--' }} km/h</p>
           <span>Peak gust estimate</span>
         </article>
         <article class="glass-panel metric-card">
           <h3>Cloud & Visibility</h3>
-          <p>{{ home_weather.cloud_cover_percent|round|int if home_weather.cloud_cover_percent is not none else '--' }}% cloud</p>
-          <span>{{ home_weather.visibility_km if home_weather.visibility_km is not none else '--' }} km visibility</span>
+          <p>{{ home_weather.cloud_cover_percent|round|int if (home_weather.cloud_cover_percent is defined and home_weather.cloud_cover_percent is not none) else '--' }}% cloud</p>
+          <span>{{ home_weather.visibility_km if (home_weather.visibility_km is defined and home_weather.visibility_km is not none) else '--' }} km visibility</span>
         </article>
         <article class="glass-panel metric-card">
           <h3>Precipitation</h3>
-          <p>{{ home_weather.precip_mm if home_weather.precip_mm is not none else '--' }} mm</p>
+          <p>{{ home_weather.precip_mm if (home_weather.precip_mm is defined and home_weather.precip_mm is not none) else '--' }} mm</p>
           <span>Current rainfall intensity</span>
         </article>
         <article class="glass-panel metric-card">
           <h3>Pressure</h3>
-          <p>{{ home_weather.pressure_hpa|round|int if home_weather.pressure_hpa is not none else '--' }} hPa</p>
+          <p>{{ home_weather.pressure_hpa|round|int if (home_weather.pressure_hpa is defined and home_weather.pressure_hpa is not none) else '--' }} hPa</p>
           <span>Surface pressure</span>
         </article>
         <article class="glass-panel metric-card uv-card">
           <h3>UV Index</h3>
-          <p>{{ home_weather.uv_index if home_weather.uv_index is not none else '--' }}</p>
+          <p>{{ home_weather.uv_index if (home_weather.uv_index is defined and home_weather.uv_index is not none) else '--' }}</p>
           <span>Use sun protection if outdoors</span>
         </article>
       </section>
 
       <section class="bottom-grid">
-        <!-- ✅ CHANGE 2: Chart section REMOVED -->
-
         <article class="glass-panel map-wrap">
           <div class="map-head">
             <h2>Delhi AQI Spread</h2>
@@ -145,8 +141,8 @@
       </section>
 
       <!-- Image Credit -->
-      <a href="/free-video/sunrise-sunset-mountain-landscape_3544728#fromView=search&amp;page=1&amp;position=0&amp;uuid=245fe5a2-053f-4e25-99ae-d315f12a154a" 
-         target="_blank" 
+      <a href="/free-video/sunrise-sunset-mountain-landscape_3544728#fromView=search&amp;page=1&amp;position=0&amp;uuid=245fe5a2-053f-4e25-99ae-d315f12a154a"
+         target="_blank"
          rel="noopener noreferrer">
          BaldasaridStock on Freepik
       </a>

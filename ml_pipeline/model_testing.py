@@ -7,9 +7,9 @@ import joblib
 from pathlib import Path
 
 # Add custom_models to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'custom_models'))
+sys.path.insert(0, os.path.join(os.path.dirnaWSme(__file__), 'custom_models'))
 
-from custom_models.metrics import (
+from ml_pipeline.custom_models.metrics import (
     mae, rmse, r2_score, accuracy, precision, recall, f1_score, 
     confusion_matrix, print_classification_report
 )
