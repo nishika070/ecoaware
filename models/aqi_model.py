@@ -16,8 +16,8 @@ def _load(name):
 
 # Load AQI regressor (trained by model_training.py)
 # Falls back to policy model only if regressor not found
-_regressor = _load("aqi_regressor.pkl")        # ✅ your lag-based RF regressor
-_scaler    = _load("data_scaler_aqi.pkl")       # ✅ scaler for lag features
+_regressor = _load("aqi_regressor.pkl")        #your lag-based RF regressor
+_scaler    = _load("data_scaler_aqi.pkl")       # scaler for lag features
 
 if _regressor is None:
     # fallback: try policy model (will likely give wrong results but won't crash)
