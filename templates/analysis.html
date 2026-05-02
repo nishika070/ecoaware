@@ -10,16 +10,20 @@
 <main class="analysis-page">
   <div class="container">
 
-    <!-- Page Heading -->
+    <!-- ── Page Heading ── -->
     <div class="analysis-head">
-      <h1>AQI & Weather Analysis</h1>
-      <p>15-day historical data with 5-day forecast to help you plan your day better.</p>
+      <div>
+        <h1>AQI &amp; Weather Analysis</h1>
+      </div>
+      <span class="head-badge">Live Data</span>
     </div>
 
-    <!-- Station Selector -->
+    <!-- ── Station Selector ── -->
     <div class="glass-panel">
       <div class="selector-row">
-        <label for="station-select">Station</label>
+        <div class="selector-label-wrap">
+          <label for="station-select">Monitoring Station</label>
+        </div>
         <select id="station-select" onchange="updateCharts()">
           <option value="all">All Delhi (Average)</option>
           {% for station in stations %}
@@ -31,7 +35,7 @@
       </div>
     </div>
 
-    <!-- Summary Cards -->
+    <!-- ── Summary Cards ── -->
     <div class="summary-grid three-cards">
       <div class="summary-card">
         <span class="card-label">Current AQI</span>
@@ -45,12 +49,48 @@
       </div>
       <div class="summary-card">
         <span class="card-label">Temperature</span>
-        <span class="card-number">{% if analysis_data.current_temp %}{{ analysis_data.current_temp }}&deg;C{% else %}--{% endif %}</span>
+        <span class="card-number">
+          {% if analysis_data.current_temp %}{{ analysis_data.current_temp }}&deg;C{% else %}--{% endif %}
+        </span>
         <span class="card-sub">{{ analysis_data.temp_trend }} trend</span>
       </div>
     </div>
 
-    <!-- Daily Life Tips -->
+    <!-- ── Forecast Model ── -->
+    <div class="glass-panel model-panel">
+      <div class="model-header">
+        <h2 class="chart-title">Forecast Model</h2>
+        <span class="model-badge">{{ analysis_data.model_name }}</span>
+      </div>
+      <div class="model-grid">
+        <div class="model-card highlight">
+          <div class="model-value">{{ analysis_data.confidence }}%</div>
+          <div class="model-label">Accuracy</div>
+          <div class="model-sub">Backtested performance</div>
+        </div>
+        <div class="model-card">
+          <div class="model-value">Hybrid</div>
+          <div class="model-label">Model Type</div>
+          <div class="model-sub">Trend + ML</div>
+        </div>
+        <div class="model-card">
+          <div class="model-value">Weather + AQI</div>
+          <div class="model-label">Inputs</div>
+          <div class="model-sub">Multi-factor</div>
+        </div>
+        <div class="model-card">
+          <div class="model-value">
+            {% if analysis_data.confidence > 80 %}High
+            {% elif analysis_data.confidence > 60 %}Moderate
+            {% else %}Low{% endif %}
+          </div>
+          <div class="model-label">Confidence</div>
+          <div class="model-sub">Reliability</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Daily Life Tips ── -->
     <div class="glass-panel">
       <h2 class="chart-title">What Should You Do Today?</h2>
       <div class="tips-grid">
@@ -66,14 +106,20 @@
       </div>
     </div>
 
-    <!-- Main AQI Chart -->
+    <!-- ── AQI Trend Chart ── -->
     <div class="glass-panel">
       <div class="chart-header-row">
-        <h2 class="chart-title">AQI Trend: Past 15 Days and 5-Day Forecast</h2>
+        <h2 class="chart-title">AQI Trend: Past 15 Days &amp; 5-Day Forecast</h2>
         <div class="chart-legend-inline">
-          <span class="legend-tag"><span class="legend-dot" style="background:#2a9fd6;"></span> Historical</span>
-          <span class="legend-tag"><span class="legend-dot" style="background:#f59e0b;"></span> Forecast</span>
-          <span class="legend-tag"><span class="legend-dash"></span> Trend</span>
+          <span class="legend-tag">
+            <span class="legend-dot" style="background:#2a9fd6;"></span> Historical
+          </span>
+          <span class="legend-tag">
+            <span class="legend-dot" style="background:#f59e0b;"></span> Forecast
+          </span>
+          <span class="legend-tag">
+            <span class="legend-dash"></span> Trend
+          </span>
         </div>
       </div>
       <div class="chart-wrap">
@@ -81,10 +127,10 @@
       </div>
     </div>
 
-    <!-- Temperature & Category Charts -->
+    <!-- ── Temperature & Category Charts ── -->
     <div class="two-col">
       <div class="glass-panel">
-        <h2 class="chart-title">Temperature and Precipitation</h2>
+        <h2 class="chart-title">Temperature &amp; Precipitation</h2>
         <div class="chart-wrap medium">
           <canvas id="weatherChart"></canvas>
         </div>
@@ -97,16 +143,17 @@
       </div>
     </div>
 
-    <!-- 5-Day Forecast Cards -->
+    <!-- ── 5-Day Forecast Cards ── -->
     <div class="glass-panel">
       <h2 class="chart-title">5-Day Forecast</h2>
       <div class="forecast-cards-row five-cards">
         {% for day in analysis_data.forecast_days[:5] %}
-        <div class="forecast-day-card">
+        <div class="forecast-day-card" style="--aqi-color: {{ day.aqi_color }}">
           <div class="forecast-date">
             <span class="day-name">{{ day.date }}</span>
           </div>
-          <div class="forecast-aqi-ring" style="--aqi-color: {{ day.aqi_color }}; --aqi-percent: {{ (day.aqi / 500 * 100) | int }}%">
+          <div class="forecast-aqi-ring"
+               style="--aqi-color: {{ day.aqi_color }}; --aqi-percent: {{ (day.aqi / 500 * 100) | int }}%">
             <span class="aqi-number">{{ day.aqi }}</span>
             <span class="aqi-label">AQI</span>
           </div>
@@ -122,23 +169,19 @@
               <span>Rain</span>
               <span>{{ day.precipitation }}%</span>
             </div>
-            <div class="weather-detail">
-              <span>Wind</span>
-              <span>{{ day.wind_speed }}</span>
-            </div>
           </div>
         </div>
         {% endfor %}
       </div>
     </div>
 
-
-    <!-- Key Insights -->
+    <!-- ── Key Insights ── -->
     <div class="glass-panel">
       <h2 class="chart-title">Key Insights</h2>
       <div class="insight-list">
         {% for insight in analysis_data.insights %}
         <div class="insight-item">
+          <div class="insight-icon">{{ insight.icon }}</div>
           <div>
             <strong>{{ insight.title }}</strong>
             <p>{{ insight.description }}</p>
@@ -148,7 +191,7 @@
       </div>
     </div>
 
-  </div>
+  </div><!-- /container -->
 </main>
 {% endblock %}
 
@@ -156,183 +199,198 @@
 <script id="chart-data" type="application/json">{{ analysis_data.chart_json | tojson | safe }}</script>
 
 <script>
-  const chartDataNode = document.getElementById('chart-data');
-  const chartData = chartDataNode ? JSON.parse(chartDataNode.textContent) : {};
-  const analysisData = window.analysis_data || {};
+const chartDataNode = document.getElementById('chart-data');
+const chartData = chartDataNode ? JSON.parse(chartDataNode.textContent) : {};
 
-  function initCharts() {
-    new Chart(document.getElementById('aqiChart'), {
-      type: 'line',
-      data: {
-        labels: chartData.aqi_labels,
-        datasets: [
-          {
-            label: 'Historical',
-            data: chartData.aqi_historical,
-            borderColor: '#2a9fd6',
-            backgroundColor: 'rgba(42,159,214,0.08)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3,
-            borderWidth: 2.5
-          },
-          {
-            label: 'Forecast',
-            data: chartData.aqi_forecast,
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245,158,11,0.06)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 4,
-            borderWidth: 2.5,
-            borderDash: [6, 4]
-          },
-          {
-            label: 'Trend',
-            data: chartData.aqi_trend,
-            borderColor: 'rgba(148,163,184,0.5)',
-            borderWidth: 1.5,
-            borderDash: [3, 3],
-            pointRadius: 0,
-            fill: false
-          }
-        ]
+const chartDefaults = {
+  font: { family: "'Plus Jakarta Sans', system-ui, sans-serif" },
+  color: '#64748b'
+};
+
+function initCharts() {
+  Chart.defaults.font.family = chartDefaults.font.family;
+  Chart.defaults.color = chartDefaults.color;
+
+  /* ── AQI Line Chart ── */
+  new Chart(document.getElementById('aqiChart'), {
+    type: 'line',
+    data: {
+      labels: chartData.aqi_labels,
+      datasets: [
+        {
+          label: 'Historical',
+          data: chartData.aqi_historical,
+          borderColor: '#2a9fd6',
+          backgroundColor: 'rgba(42,159,214,0.07)',
+          fill: true,
+          tension: 0.42,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#2a9fd6',
+          borderWidth: 2.5
+        },
+        {
+          label: 'Forecast',
+          data: chartData.aqi_forecast,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,0.05)',
+          fill: true,
+          tension: 0.42,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#f59e0b',
+          borderWidth: 2.5,
+          borderDash: [6, 4]
+        },
+        {
+          label: 'Trend',
+          data: chartData.aqi_trend,
+          borderColor: 'rgba(148,163,184,0.45)',
+          borderWidth: 1.5,
+          borderDash: [3, 3],
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,.88)',
+          titleFont: { weight: '700', size: 13 },
+          bodyFont: { size: 12 },
+          padding: 12,
+          cornerRadius: 10,
+          borderColor: 'rgba(255,255,255,.08)',
+          borderWidth: 1
+        }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
-          x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } }
+      scales: {
+        y: {
+          grid: { color: 'rgba(226,232,240,.7)', drawBorder: false },
+          ticks: { font: { size: 11 } }
+        },
+        x: {
+          grid: { color: 'rgba(226,232,240,.5)', drawBorder: false },
+          ticks: { font: { size: 11 }, maxRotation: 45 }
         }
-      }
-    });
-
-    new Chart(document.getElementById('weatherChart'), {
-      type: 'bar',
-      data: {
-        labels: chartData.weather_labels,
-        datasets: [
-          {
-            label: 'Temperature',
-            data: chartData.temperature_data,
-            backgroundColor: 'rgba(245,158,11,0.5)',
-            borderColor: '#f59e0b',
-            borderWidth: 1,
-            borderRadius: 6,
-            yAxisID: 'y'
-          },
-          {
-            label: 'Precipitation',
-            data: chartData.precipitation_data,
-            type: 'line',
-            borderColor: '#2a9fd6',
-            backgroundColor: 'rgba(42,159,214,0.1)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#64748b' } } },
-        scales: {
-          y: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } },
-          y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#64748b' } },
-          x: { grid: { color: '#e2e8f0' }, ticks: { color: '#64748b' } }
-        }
-      }
-    });
-
-    new Chart(document.getElementById('categoryChart'), {
-      type: 'doughnut',
-      data: {
-        labels: chartData.category_labels,
-        datasets: [{
-          data: chartData.category_data,
-          backgroundColor: chartData.category_colors,
-          borderColor: '#fff',
-          borderWidth: 3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'right', labels: { color: '#64748b', padding: 14, font: { size: 12 } } }
-        }
-      }
-    });
-
-    const corrData = analysisData.correlation_data || {};
-    const canvas = document.getElementById('heatmapChart');
-    if (!canvas || !corrData.labels || !corrData.matrix) return;
-
-    const ctx = canvas.getContext('2d');
-    const labels = corrData.labels;
-    const matrix = corrData.matrix;
-    const cellSize = 36;
-    const labelWidth = 100;
-    const totalSize = cellSize * labels.length;
-
-    canvas.width = totalSize + labelWidth + 20;
-    canvas.height = totalSize + labelWidth + 20;
-    canvas.style.width = (totalSize + labelWidth + 20) + 'px';
-    canvas.style.height = (totalSize + labelWidth + 20) + 'px';
-
-    ctx.fillStyle = '#64748b';
-    ctx.font = '9px Plus Jakarta Sans, sans-serif';
-    ctx.textAlign = 'left';
-    labels.forEach((label, i) => {
-      ctx.save();
-      ctx.translate(labelWidth + (i * cellSize) + cellSize / 2, labelWidth - 8);
-      ctx.rotate(-Math.PI / 4);
-      ctx.fillText(label.substring(0, 12), 0, 0);
-      ctx.restore();
-    });
-
-    ctx.textAlign = 'right';
-    labels.forEach((label, i) => {
-      ctx.fillText(label.substring(0, 14), labelWidth - 8, labelWidth + (i * cellSize) + cellSize / 2 + 3);
-    });
-
-    for (let i = 0; i < labels.length; i++) {
-      for (let j = 0; j < labels.length; j++) {
-        const value = matrix[i][j];
-        const x = labelWidth + (j * cellSize);
-        const y = labelWidth + (i * cellSize);
-
-        const intensity = Math.abs(value);
-        let r, g, b;
-        if (value >= 0) {
-          r = Math.round(255 - (255 - 34) * intensity);
-          g = Math.round(255 - (255 - 139) * intensity);
-          b = Math.round(255 - (255 - 34) * intensity);
-        } else {
-          r = Math.round(34 + (255 - 34) * intensity);
-          g = Math.round(139 + (255 - 139) * intensity);
-          b = Math.round(34 + (255 - 34) * intensity);
-        }
-
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
-
-        ctx.fillStyle = intensity > 0.5 ? '#fff' : '#1e293b';
-        ctx.font = 'bold 8px Plus Jakarta Sans, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(value.toFixed(1), x + cellSize / 2, y + cellSize / 2 + 3);
       }
     }
-  }
+  });
 
-  function updateCharts() {
-    window.location.href = '{{ url_for('analysis_page') }}?station=' + document.getElementById('station-select').value;
-  }
+  /* ── Weather Bar + Line Chart ── */
+  new Chart(document.getElementById('weatherChart'), {
+    type: 'bar',
+    data: {
+      labels: chartData.weather_labels,
+      datasets: [
+        {
+          label: 'Temperature (°C)',
+          data: chartData.temperature_data,
+          backgroundColor: 'rgba(245,158,11,0.45)',
+          borderColor: '#f59e0b',
+          borderWidth: 1.5,
+          borderRadius: 8,
+          borderSkipped: false,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Precipitation (%)',
+          data: chartData.precipitation_data,
+          type: 'line',
+          borderColor: '#2a9fd6',
+          backgroundColor: 'rgba(42,159,214,0.08)',
+          fill: true,
+          tension: 0.42,
+          pointRadius: 4,
+          pointBackgroundColor: '#2a9fd6',
+          borderWidth: 2,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { font: { size: 11, weight: '600' }, usePointStyle: true, pointStyleWidth: 8 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,.88)',
+          titleFont: { weight: '700', size: 13 },
+          bodyFont: { size: 12 },
+          padding: 12,
+          cornerRadius: 10
+        }
+      },
+      scales: {
+        y: {
+          grid: { color: 'rgba(226,232,240,.7)', drawBorder: false },
+          ticks: { font: { size: 11 } }
+        },
+        y1: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { font: { size: 11 } }
+        },
+        x: {
+          grid: { color: 'rgba(226,232,240,.5)', drawBorder: false },
+          ticks: { font: { size: 11 } }
+        }
+      }
+    }
+  });
 
-  document.addEventListener('DOMContentLoaded', initCharts);
+  /* ── Doughnut Chart ── */
+  new Chart(document.getElementById('categoryChart'), {
+    type: 'doughnut',
+    data: {
+      labels: chartData.category_labels,
+      datasets: [{
+        data: chartData.category_data,
+        backgroundColor: chartData.category_colors,
+        borderColor: '#fff',
+        borderWidth: 3,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            font: { size: 11, weight: '600' },
+            padding: 16,
+            usePointStyle: true,
+            pointStyleWidth: 10
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15,23,42,.88)',
+          titleFont: { weight: '700', size: 13 },
+          bodyFont: { size: 12 },
+          padding: 12,
+          cornerRadius: 10
+        }
+      }
+    }
+  });
+}
+
+function updateCharts() {
+  window.location.href = '{{ url_for("analysis_page") }}?station=' +
+    document.getElementById('station-select').value;
+}
+
+document.addEventListener('DOMContentLoaded', initCharts);
 </script>
 {% endblock %}
