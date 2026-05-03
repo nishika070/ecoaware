@@ -16,30 +16,30 @@
   <div class="aqi-bg-overlay" aria-hidden="true"></div>
   <div class="container">
     <div class="dashboard">
-
       <!-- LEFT PANEL -->
       <section class="panel hero-panel">
-        <div class="hero-top">
-          <div>
-            <p class="label">Live — {{ current_label }}</p>
-            <div class="big-aqi">{{ current_aqi }}</div>
-            <div class="aqi-badge {{ current_status | lower | replace(' ', '-') }}">
-              {{ current_status }}
-            </div>
+        <div>
+          <div class="hero-top">
+            <p class="label">LIVE – CITY AVERAGE</p>
+          </div>
+          <div class="big-aqi">{{ current_aqi }}</div>
+          <div class="aqi-badge {{ current_status | lower | replace(' ', '-') }}">
+            {{ current_status }}
           </div>
         </div>
 
         <div class="aqi-bar-wrap">
           <div class="aqi-bar">
-            <div class="aqi-needle"
-              style="left: {{ [[current_aqi | int / 500 * 100, 100] | min, 0] | max }}%;">
-            </div>
+            <div class="aqi-needle" style="left: {{ [[current_aqi | int / 500 * 100, 100] | min, 0] | max }}%;"></div>
+          </div>
+          <div class="aqi-scale-labels">
+            <span>0</span><span>50</span><span>100</span><span>200</span><span>300</span><span>500</span>
           </div>
         </div>
 
         <!-- Pollutants -->
         <div class="metrics-section">
-          <h3 class="mini-title">Current Pollutants</h3>
+          <h3 class="mini-title">CURRENT POLLUTANTS</h3>
           <div class="metrics-grid">
             <div class="metric-card"><span class="metric-label">PM2.5</span><div class="metric-value">{{ current_pollutants.pm25 }}</div></div>
             <div class="metric-card"><span class="metric-label">PM10</span><div class="metric-value">{{ current_pollutants.pm10 }}</div></div>
@@ -52,23 +52,22 @@
 
         <!-- Prediction -->
         <div class="tomorrow-strip">
-          <span class="tomorrow-label">Tomorrow's Forecast</span>
+          <span class="tomorrow-label">TOMORROW'S FORECAST</span>
           <div class="tomorrow-aqi">{{ predicted.aqi }}</div>
           <div class="aqi-badge {{ predicted.status | lower | replace(' ', '-') }}">
             {{ predicted.status }}
           </div>
         </div>
 
-        <!-- Health -->
         <div class="info-box">
-          <strong>Health advisory</strong>
+          <strong> Health advisory</strong><br>
           Air quality is {{ current_status | lower }} today.
         </div>
       </section>
 
-      <!-- RIGHT PANEL -->
+      <!-- RIGHT PANEL - Stations -->
       <section class="panel">
-        <h2>All Monitoring Stations</h2>
+        <h2 class="stations-title">ALL MONITORING STATIONS</h2>
         <div class="trend-table">
           {% for row in station_rows %}
           <div class="trend-row">
@@ -81,75 +80,78 @@
           {% endfor %}
         </div>
       </section>
-
     </div>
 
-    <!-- 🔥 NEW SECTION -->
-    <section class="panel explanation">
+    <!-- INSIGHTS SECTION -->
+    <div class="panel insight-premium">
+      <div class="insight-header">
+        <h2>Today's Air Quality Insights</h2>
+        <div class="subhead">Understanding what affects your air</div>
+      </div>
 
-      <h2>Today's Air Quality Insights</h2>
-      <p class="subtext">Understanding what is affecting air quality today</p>
-
-      <!-- WHY AQI -->
-      <div class="insight-cards">
-
-        <div class="insight-card">
-          <span>🌬️</span>
-          <div>
+      <div class="cards-grid">
+        <div class="factor-card">
+          <div class="factor-emoji">🌬️</div>
+          <div class="factor-text">
             <strong>Low Wind</strong>
             <p>Pollutants not dispersing</p>
           </div>
         </div>
-
-        <div class="insight-card">
-          <span>🌡️</span>
-          <div>
+        <div class="factor-card">
+          <div class="factor-emoji">🌡️</div>
+          <div class="factor-text">
             <strong>High Temp</strong>
             <p>Increases pollution reactions</p>
           </div>
         </div>
-
-        <div class="insight-card">
-          <span>🌧️</span>
-          <div>
+        <div class="factor-card">
+          <div class="factor-emoji">🌧️</div>
+          <div class="factor-text">
             <strong>No Rain</strong>
             <p>No washout of particles</p>
           </div>
         </div>
-
-        <div class="insight-card">
-          <span>🏭</span>
-          <div>
+        <div class="factor-card">
+          <div class="factor-emoji">🏭</div>
+          <div class="factor-text">
             <strong>Emissions</strong>
             <p>Traffic + industry impact</p>
           </div>
         </div>
-
       </div>
 
-      <!-- IMPACT -->
-      <div class="impact-panel">
-        <h3>Health Impact</h3>
-
-        <div class="impact-item">
-          <span>Respiratory Risk</span>
-          <div class="impact-bar"><div style="width: 80%"></div></div>
+      <div class="health-impact-block">
+        <h3>⚠️ Health Impact & Recommendations</h3>
+        <div class="health-item">
+          <div class="health-label">
+            <span>Respiratory Risk</span>
+            <span>Moderate</span>
+          </div>
+          <div class="health-bar-bg">
+            <div class="health-fill" style="width: 52%;"></div>
+          </div>
         </div>
-
-        <div class="impact-item">
-          <span>Outdoor Activity</span>
-          <div class="impact-bar"><div style="width: 30%"></div></div>
+        <div class="health-item">
+          <div class="health-label">
+            <span>Outdoor Activity</span>
+            <span>Caution</span>
+          </div>
+          <div class="health-bar-bg">
+            <div class="health-fill" style="width: 38%;"></div>
+          </div>
         </div>
-
-        <div class="impact-item">
-          <span>Children Safety</span>
-          <div class="impact-bar"><div style="width: 25%"></div></div>
+        <div class="health-item">
+          <div class="health-label">
+            <span>Children Safety</span>
+            <span>Sensitive</span>
+          </div>
+          <div class="health-bar-bg">
+            <div class="health-fill" style="width: 44%;"></div>
+          </div>
         </div>
-
+        <div class="health-note">💡 Advisory: Wear masks if venturing outdoors near high-traffic zones.</div>
       </div>
-
-    </section>
-
+    </div>
   </div>
 </main>
 {% endblock %}

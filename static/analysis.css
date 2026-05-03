@@ -525,48 +525,6 @@
   gap: 12px;
 }
 
-.insight-item {
-  display: flex;
-  gap: 16px;
-  padding: 18px;
-  background: var(--neutral-50);
-  border-radius: var(--r-md);
-  border: 1px solid var(--neutral-100);
-  transition: transform .25s ease, box-shadow .25s ease, border-color .25s;
-  align-items: flex-start;
-}
-
-.insight-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-  border-color: var(--eco-200);
-}
-
-.insight-icon {
-  width: 42px; height: 42px;
-  border-radius: var(--r-md);
-  background: linear-gradient(135deg, var(--eco-100), var(--sky-100));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  flex-shrink: 0;
-  border: 1px solid var(--eco-200);
-}
-
-.insight-item strong {
-  display: block;
-  font-size: .9rem;
-  color: var(--neutral-800);
-  margin-bottom: 4px;
-  letter-spacing: -.01em;
-}
-
-.insight-item p {
-  font-size: .84rem;
-  color: var(--neutral-600);
-  line-height: 1.55;
-}
 
 /* ── Forecast Cards Row ── */
 .forecast-cards-row {

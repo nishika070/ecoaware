@@ -124,22 +124,7 @@
       </div>
     </div>
 
-    <!-- ── Key Insights ── -->
-    <div class="glass-panel">
-      <h2 class="chart-title">Key Insights</h2>
-      <div class="insight-list">
-        {% for insight in analysis_data.insights %}
-        <div class="insight-item">
-          <div class="insight-icon">{{ insight.icon }}</div>
-          <div>
-            <strong>{{ insight.title }}</strong>
-            <p>{{ insight.description }}</p>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-
+    
   </div><!-- /container -->
 </main>
 {% endblock %}
