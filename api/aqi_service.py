@@ -567,57 +567,35 @@ def get_policies_page_context() -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def get_analysis_context(selected_station: str | None = None) -> dict[str, Any]:
-    available_stations = get_available_stations()
-    if selected_station == "all":
-        station_name = "all"
-        city_daily = load_daily_aqi()
-        station_series = (
-            city_daily.rename(columns={"avg_aqi": "aqi"})[["date", "aqi"]]
-            if not city_daily.empty
-            else pd.DataFrame(columns=["date", "aqi"])
-        )
-    else:
-        station_name = resolve_station_name(selected_station)
-        station_series = get_station_series(station_name)
-    pred               = build_prediction_payload()
+    city_daily = load_daily_aqi()
+    station_series = (
+        city_daily.rename(columns={"avg_aqi": "aqi"})[["date", "aqi"]]
+        if not city_daily.empty
+        else pd.DataFrame(columns=["date", "aqi"])
+    )
 
-    coords                = STATION_COORDINATES.get(
-        station_name if station_name != "all" else "Delhi",
-        {"lat": 28.61, "lng": 77.23},
-    )
-    weather               = get_station_weather_snapshot(
-        station_name if station_name != "all" else "Delhi",
-        coords.get("lat"),
-        coords.get("lng"),
-    )
-    current               = weather.get("current", {})
+    pred = build_prediction_payload()
+
+    coords = {"lat": 28.61, "lng": 77.23}
+    weather = get_station_weather_snapshot("Delhi", coords["lat"], coords["lng"])
+    current = weather.get("current", {})
     forecast_days_weather = weather.get("forecast_days", [])
-    live_temp             = _safe_float(current.get("temperature_c"))
+    live_temp = _safe_float(current.get("temperature_c"))
 
     last15 = station_series.tail(15).copy() if not station_series.empty else pd.DataFrame()
-    if not last15.empty:
-        current_aqi = int(round(float(last15.iloc[-1]["aqi"])))
-    else:
-        current_aqi = int(pred["today"])
 
-    forecast_values: list[int] = []
-    weather_forecast = forecast_days_weather[:5]
-    if not last15.empty and len(last15) >= 5:
-        recent_aqi = last15["aqi"].tail(5).tolist()
-        if len(recent_aqi) >= 2:
-            trend = (recent_aqi[-1] - recent_aqi[0]) / 4
-        else:
-            trend = 0
-        for i in range(5):
-            next_aqi = recent_aqi[-1] + (trend * (i + 1))
-            forecast_values.append(max(0, min(500, int(round(next_aqi)))))
-    else:
-        forecast_values = [pred["tomorrow"]] * 5
+    live_aqi = _safe_float(weather.get("air_quality", {}).get("aqi"))
+    current_aqi = (
+        int(round(live_aqi)) if live_aqi is not None
+        else (int(round(float(last15.iloc[-1]["aqi"]))) if not last15.empty else int(pred["today"]))
+    )
+
+    forecast_values = [pred["tomorrow"]] * 5
 
     forecast_days_out = []
     for i in range(5):
-        wd = weather_forecast[i] if i < len(weather_forecast) else {}
-        aqi_val = forecast_values[i] if i < len(forecast_values) else pred["tomorrow"]
+        wd = forecast_days_weather[i] if i < len(forecast_days_weather) else {}
+        aqi_val = forecast_values[i]
         date_str = f"{wd.get('day_label', f'Day {i+1}')} {wd.get('date_label', '')}".strip()
         forecast_days_out.append({
             "date": date_str or f"Day {i+1}",
@@ -633,22 +611,6 @@ def get_analysis_context(selected_station: str | None = None) -> dict[str, Any]:
                 f"{int(round(wd['wind_speed_kmh']))} km/h"
                 if wd.get("wind_speed_kmh") is not None else "--"
             ),
-        })
-
-    while len(forecast_days_out) < 5:
-        idx = len(forecast_days_out)
-        aqi_val = forecast_values[idx] if idx < len(forecast_values) else pred["tomorrow"]
-        forecast_days_out.append({
-            "date": f"Day {idx + 1}",
-            "aqi": aqi_val,
-            "aqi_color": get_aqi_color(aqi_val),
-            "category": classify_aqi(aqi_val),
-            "health_advisory": advice_for_aqi(aqi_val),
-            "temp_max": "--",
-            "temp_min": "--",
-            "precipitation": "--",
-            "humidity": "--",
-            "wind_speed": "--",
         })
 
     forecast_avg = sum(forecast_values) / len(forecast_values) if forecast_values else 0
@@ -669,56 +631,13 @@ def get_analysis_context(selected_station: str | None = None) -> dict[str, Any]:
 
     temp_trend = "Stable"
     weather_today_temp = _safe_float(current.get("temperature_c")) if current else None
-    if weather_today_temp is not None and len(weather_forecast) > 0:
-        tmr_temp = weather_forecast[0].get("max_temp")
+    if weather_today_temp is not None and len(forecast_days_weather) > 0:
+        tmr_temp = forecast_days_weather[0].get("max_temp")
         if tmr_temp is not None:
             if tmr_temp > weather_today_temp:
                 temp_trend = "Rising"
             elif tmr_temp < weather_today_temp:
                 temp_trend = "Falling"
-
-    category_counts = {"Good": 0, "Satisfactory": 0, "Moderate": 0, "Poor": 0, "Very Poor": 0, "Severe": 0}
-    if not last15.empty:
-        for _, row in last15.iterrows():
-            cat = classify_aqi(float(row["aqi"]))
-            if cat == "Moderately Polluted":
-                category_counts["Moderate"] += 1
-            elif cat in category_counts:
-                category_counts[cat] += 1
-
-    for day in forecast_days_out:
-        cat = day["category"]
-        if cat == "Moderately Polluted":
-            category_counts["Moderate"] += 1
-        elif cat in category_counts:
-            category_counts[cat] += 1
-
-    category_order = ["Good", "Satisfactory", "Moderate", "Poor", "Very Poor", "Severe"]
-    category_labels = [c for c in category_order if category_counts[c] > 0]
-    category_data = [category_counts[c] for c in category_labels]
-    category_colors = ["#2e9f57", "#8abf2f", "#d2a819", "#e67e22", "#d55353", "#7a0019"]
-    category_color_list = [category_colors[category_order.index(c)] for c in category_labels]
-
-    hist_labels = last15["date"].dt.strftime("%d %b").tolist() if not last15.empty else []
-    hist_values = last15["aqi"].round(1).tolist() if not last15.empty else []
-    fc_labels = [d["date"] for d in forecast_days_out]
-    fc_values = [d["aqi"] for d in forecast_days_out]
-
-    all_labels = hist_labels + fc_labels
-    aqi_historical = hist_values + [None] * len(fc_labels)
-    aqi_forecast = [None] * len(hist_labels) + fc_values
-
-    if len(hist_values) >= 2:
-        x = np.arange(len(hist_values), dtype=float)
-        coeffs = np.polyfit(x, hist_values, 1)
-        trend_y = np.polyval(coeffs, x).round(1).tolist()
-        aqi_trend_line = trend_y + [None] * len(fc_labels)
-    else:
-        aqi_trend_line = [None] * len(all_labels)
-
-    weather_labels = [d.get("day_label", f"Day {i+1}") for i, d in enumerate(weather_forecast)]
-    temperature_data = [d.get("max_temp") for d in weather_forecast]
-    precipitation_data = [d.get("precip_probability") for d in weather_forecast]
 
     analysis_data = {
         "date_range": (
@@ -770,24 +689,11 @@ def get_analysis_context(selected_station: str | None = None) -> dict[str, Any]:
                 "description": f"75% accuracy based on historical model predictions using {pred.get('model_name', 'ML model')}.",
             },
         ],
-        "chart_json": {
-            "aqi_labels": all_labels,
-            "aqi_historical": aqi_historical,
-            "aqi_forecast": aqi_forecast,
-            "aqi_trend": aqi_trend_line,
-            "weather_labels": weather_labels,
-            "temperature_data": temperature_data,
-            "precipitation_data": precipitation_data,
-            "category_labels": category_labels,
-            "category_data": category_data,
-            "category_colors": category_color_list,
-        },
-        "correlation_data": {},
     }
 
     return {
-        "stations": available_stations,
-        "selected_station": station_name,
+        "stations": [],
+        "selected_station": None,
         "analysis_data": analysis_data,
     }
 

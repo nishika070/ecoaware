@@ -115,7 +115,7 @@ def contact_page():
 # ----------------------------------------------------------------------------
 @app.route("/analysis")
 def analysis_page():
-    context = get_analysis_context(request.args.get("station"))
+    context = get_analysis_context("all")
     g.analysis_js = context.get("analysis_data", {})
     return render_template(
         "analysis.html",

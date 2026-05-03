@@ -16,6 +16,8 @@ This setup uses:
 - multi-page routes for Home, AQI, Temperature, Policy Insights, and Contact
 - `/api/aqi` API endpoint for AQI data and prediction
 - `datasets/Data_training/AQI_merged_all.csv` as the AQI source
+- For a scaled CSV dataset like your new `datasets/delhi25-26.csv`, run:
+  `python ml_pipeline/model_training.py --scaled datasets/delhi25-26.csv`
 - Random Forest prediction by default, with support for model files later
 
 ## Optional model files
