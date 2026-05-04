@@ -4,10 +4,8 @@ import sys
 import os
 import pandas as pd
 
-# FIX PATH
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# CLEAN IMPORTS (ONLY VALID FUNCTIONS)
 from api.aqi_service import (
     build_prediction_payload,
     get_aqi_page_context,
@@ -52,9 +50,7 @@ def inject_analysis_js(response):
     return response
 
 
-# ----------------------------------------------------------------------------
 # HOME
-# ----------------------------------------------------------------------------
 @app.route("/")
 def home():
     selected_station = request.args.get("station") or DEFAULT_STATION
@@ -65,9 +61,7 @@ def home():
     )
 
 
-# ----------------------------------------------------------------------------
 # AQI PAGE
-# ----------------------------------------------------------------------------
 @app.route("/aqi")
 def aqi_page():
     station = request.args.get("station", "all")
@@ -78,18 +72,14 @@ def aqi_page():
     )
 
 
-# ----------------------------------------------------------------------------
 # TEMPERATURE
-# ----------------------------------------------------------------------------
 @app.route("/temperature")
 def temperature_page():
     selected_station = request.args.get("station") or DEFAULT_STATION
     return redirect(url_for("home", station=selected_station))
 
 
-# ----------------------------------------------------------------------------
 # POLICY PAGE
-# ----------------------------------------------------------------------------
 @app.route("/policies")
 def policies_page():
     return render_template(
@@ -99,9 +89,7 @@ def policies_page():
     )
 
 
-# ----------------------------------------------------------------------------
 # CONTACT PAGE
-# ----------------------------------------------------------------------------
 @app.route("/contact")
 def contact_page():
     return render_template(
@@ -110,9 +98,7 @@ def contact_page():
     )
 
 
-# ----------------------------------------------------------------------------
 # ANALYSIS PAGE
-# ----------------------------------------------------------------------------
 @app.route("/analysis")
 def analysis_page():
     context = get_analysis_context("all")
@@ -124,16 +110,12 @@ def analysis_page():
     )
 
 
-# ----------------------------------------------------------------------------
 # API
-# ----------------------------------------------------------------------------
 @app.route("/api/aqi")
 def get_aqi_api():
     return jsonify(build_prediction_payload())
 
 
-# ----------------------------------------------------------------------------
 # RUN
-# ----------------------------------------------------------------------------
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)

@@ -1,9 +1,3 @@
-"""
-Fill this file with station-wise climate values when you are ready.
-These values are intentionally left as None so the app does not show dummy data.
-Update the matching station entry with real values from your source/API/model.
-"""
-
 STATION_CLIMATE = {
     "Anand Vihar": {"temperature_c": None, "precipitation_chance": None},
     "Ashok Vihar": {"temperature_c": None, "precipitation_chance": None},

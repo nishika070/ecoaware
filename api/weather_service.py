@@ -11,11 +11,9 @@ load_dotenv(dotenv_path=r"D:\ecoaware-project\backend\api\token.env")
 
 
 WAQI_TOKEN ="5bb7bdd214ac544ed93f42564857c93d4f5a0b92"
-  # ← set this from config/env later
 
 print(f"Token loaded: '{WAQI_TOKEN}'")
 WAQI_GEO_BASE_URL = "https://api.waqi.info/feed/geo:{lat};{lng}/?token={token}"
- # ← set this from config/env later
 
 FORECAST_BASE_URL = "https://api.open-meteo.com/v1/forecast"
 AIR_QUALITY_BASE_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
@@ -99,7 +97,6 @@ def _build_hourly_preview(hourly_payload: dict[str, Any], current_time: str | No
 
 
 def _fetch_waqi_geo(lat: float, lon: float) -> dict[str, Any]:
-    """Fetch AQI data from WAQI using geo coordinates."""
     url = WAQI_GEO_BASE_URL.format(lat=lat, lng=lon, token=WAQI_TOKEN)
     try:
         with urlopen(url, timeout=12) as response:
@@ -131,7 +128,6 @@ def get_station_weather_snapshot(
     if cached and now_utc - cached[0] <= _CACHE_TTL:
         return cached[1]
 
-    # ============ 1. FETCH OPEN‑METEO WEATHER  ============
     try:
         forecast_payload = _fetch_json(
             FORECAST_BASE_URL,
@@ -178,7 +174,6 @@ def get_station_weather_snapshot(
             "fetched_at": None,
         }
 
-    # Build forecast_days from Open‑Meteo:
     current = forecast_payload.get("current", {})
     hourly_weather = forecast_payload.get("hourly", {})
     daily = forecast_payload.get("daily", {})
@@ -201,7 +196,6 @@ def get_station_weather_snapshot(
             }
         )
 
-    # ============ 2. FETCH WAQI AQI (with capping) ============
     try:
         waqi_data = _fetch_waqi_geo(lat, lon)
     except Exception:
@@ -213,7 +207,6 @@ def get_station_weather_snapshot(
         iaqi = data.get("iaqi", {})
         obs_time = data.get("time", {}).get("s", "Unknown")
         
-        # Get raw AQI and cap it to 500
         raw_aqi = data.get("aqi")
         capped_aqi = min(raw_aqi, 500) if raw_aqi is not None else None
         
@@ -239,7 +232,6 @@ def get_station_weather_snapshot(
             "observed_at": None,
         }
 
-    # ============ 3. BUILD SNAPSHOT  ============
     snapshot = {
         "station": station_name,
         "source_error": None,

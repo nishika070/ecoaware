@@ -31,19 +31,12 @@ from models.aqi_model import predict_aqi, get_policy_action, get_health_suggesti
 from api.weather_service import get_station_weather_snapshot
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# LIVE AQI CACHE
-# ─────────────────────────────────────────────────────────────────────────────
-
+# live aqi cache
 _live_aqi_cache: dict = {}
 _live_aqi_cache_time: float = 0
 _LIVE_AQI_TTL = 600
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# SAFE HELPERS
-# ─────────────────────────────────────────────────────────────────────────────
-
+#safe helpers
 def _safe_float(val: Any) -> float | None:
     try:
         if val is None:
@@ -64,10 +57,7 @@ def _safe_int(val: Any) -> int | None:
         return None
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# STATION HELPERS
-# ─────────────────────────────────────────────────────────────────────────────
-
+#station helpers
 @lru_cache(maxsize=1)
 def get_available_stations() -> list[str]:
     df = load_station_daily_aqi()
@@ -123,10 +113,7 @@ def get_station_latest_table() -> list[dict[str, Any]]:
     return results
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# LIVE AQI (threaded, cached)
-# ─────────────────────────────────────────────────────────────────────────────
-
+#live aqi threaded+cached
 def get_all_stations_live_aqi() -> dict[str, int | None]:
     global _live_aqi_cache, _live_aqi_cache_time
 
@@ -157,10 +144,7 @@ def get_all_stations_live_aqi() -> dict[str, int | None]:
     return results
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PREDICTION PAYLOAD
-# ─────────────────────────────────────────────────────────────────────────────
-
+#prediction payload
 def _policy_level(aqi: float) -> int:
     if aqi <= 100:  return 0
     if aqi <= 150:  return 1
@@ -231,10 +215,7 @@ def build_prediction_payload() -> dict[str, Any]:
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# HOME PAGE
-# ─────────────────────────────────────────────────────────────────────────────
-
+#home page
 def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
     station_name   = resolve_station_name(selected_station)
     station_series = get_station_series(station_name)
@@ -399,11 +380,7 @@ def get_home_context(selected_station: str | None = None) -> dict[str, Any]:
         },
     }
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# AQI PAGE
-# ─────────────────────────────────────────────────────────────────────────────
-
+#aqi page
 def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
     csv_rows  = get_station_latest_table()
     live_aqis = get_all_stations_live_aqi()
@@ -483,11 +460,7 @@ def get_aqi_page_context(selected_station: str | None = None) -> dict[str, Any]:
         ],
     }
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# POLICIES PAGE
-# ─────────────────────────────────────────────────────────────────────────────
-
+#policy page
 def get_policies_page_context() -> dict[str, Any]:
     pred         = build_prediction_payload()
     station_rows = get_station_latest_table()
@@ -561,11 +534,7 @@ def get_policies_page_context() -> dict[str, Any]:
         ],
     }
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# ANALYSIS PAGE
-# ─────────────────────────────────────────────────────────────────────────────
-
+#analysis page
 def get_analysis_context(selected_station: str | None = None) -> dict[str, Any]:
     city_daily = load_daily_aqi()
     station_series = (
@@ -697,11 +666,7 @@ def get_analysis_context(selected_station: str | None = None) -> dict[str, Any]:
         "analysis_data": analysis_data,
     }
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CONTACT PAGE
-# ─────────────────────────────────────────────────────────────────────────────
-
+#contact page
 def get_contact_page_context() -> dict[str, Any]:
     pred = build_prediction_payload()
     return {

@@ -7,7 +7,7 @@ import joblib
 from pathlib import Path
 
 # Add custom_models to path
-sys.path.insert(0, os.path.join(os.path.dirnaWSme(__file__), 'custom_models'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'custom_models'))
 
 from ml_pipeline.custom_models.metrics import (
     mae, rmse, r2_score, accuracy, precision, recall, f1_score, 
@@ -66,19 +66,15 @@ def load_data_and_models():
     print("LOADING DATA AND MODELS")
     print("="*70)
     
-    # Load scaled data
     print(f"\nLoading scaled data from: {MERGED_SCALED_PATH}")
     df_scaled = pd.read_csv(MERGED_SCALED_PATH)
     
-    # Load readable data
     print(f"Loading readable data from: {MERGED_READABLE_PATH}")
     df_readable = pd.read_csv(MERGED_READABLE_PATH)
     
-    # Load scaler
     print(f"Loading scaler from: {MERGER_SCALER_PATH}")
     scaler = joblib.load(MERGER_SCALER_PATH)
     
-    # Prepare features
     feature_cols = ['YEAR', 'DOY', 'T2M', 'T2M_MAX', 'T2M_MIN', 'RH2M', 
                     'PRECTOTCORR', 'WS10M', 'WS10M_MAX', 'WS10M_MIN', 'PS', 
                     'LOC', 'hasSprinkler', 'isIndustrial']
@@ -88,14 +84,13 @@ def load_data_and_models():
     aqi_real = df_readable['AQI'].values
     y_policy = np.array([aqi_to_policy(aqi) for aqi in aqi_real])
     
-    # 80/20 split (same as training)
+    # split 80-20
     split_idx = int(len(X) * 0.8)
     X_test = X[split_idx:]
     y_aqi_test = y_aqi_scaled[split_idx:]
     y_policy_test = y_policy[split_idx:]
     aqi_real_test = aqi_real[split_idx:]
     
-    # Load models
     print(f"\nLoading AQI Regressor from: {AQI_REGRESSOR_PATH}")
     with open(AQI_REGRESSOR_PATH, 'rb') as f:
         rf_aqi = pickle.load(f)
@@ -118,10 +113,8 @@ def evaluate_aqi_regressor(X_test, y_aqi_test, aqi_real_test, rf_aqi, scaler):
     print("AQI REGRESSOR EVALUATION")
     print("="*70)
     
-    # Get predictions (scaled)
     y_aqi_pred_scaled = rf_aqi.predict(X_test)
     
-    # Calculate metrics on scaled values
     mae_scaled = mae(y_aqi_test, y_aqi_pred_scaled)
     rmse_scaled = rmse(y_aqi_test, y_aqi_pred_scaled)
     r2_scaled = r2_score(y_aqi_test, y_aqi_pred_scaled)
@@ -132,7 +125,6 @@ def evaluate_aqi_regressor(X_test, y_aqi_test, aqi_real_test, rf_aqi, scaler):
     print(f"  R²:   {r2_scaled:.6f}")
     
     # Inverse scale predictions to real AQI values
-    # Need to reconstruct full rows for inverse transformation
     X_test_full = X_test.copy()
     X_test_full[:, -2] = y_aqi_pred_scaled  # Replace AQI column with predictions
     
@@ -156,7 +148,6 @@ def evaluate_aqi_regressor(X_test, y_aqi_test, aqi_real_test, rf_aqi, scaler):
     print(f"  RMSE: {rmse_real:.2f} AQI points")
     print(f"  R²:   {r2_real:.6f}")
     
-    # Sample predictions
     print("\nSample Predictions (first 10 test samples):")
     print(f"{'True AQI':<12} {'Pred AQI':<12} {'Error':<12} {'Policy':<25}")
     print("-"*70)
@@ -179,14 +170,11 @@ def evaluate_policy_classifier(X_test, y_policy_test, dt_policy):
     print("POLICY CLASSIFIER EVALUATION")
     print("="*70)
     
-    # Get predictions
     y_policy_pred = dt_policy.predict(X_test)
     
-    # Overall accuracy
     acc = accuracy(y_policy_test, y_policy_pred)
     print(f"\nOverall Accuracy: {acc:.6f}")
     
-    # Per-class metrics
     print("\nPer-Class Metrics:")
     print(f"{'Policy':<8} {'Label':<35} {'Precision':<12} {'Recall':<12} {'F1-Score':<12}")
     print("-"*70)
@@ -200,7 +188,6 @@ def evaluate_policy_classifier(X_test, y_policy_test, dt_policy):
         
         print(f"{int(cls):<8} {label:<35} {p:<12.4f} {r:<12.4f} {f1:<12.4f}")
     
-    # Confusion matrix
     cm = confusion_matrix(y_policy_test, y_policy_pred, num_classes=7)
     
     print("\nConfusion Matrix:")
@@ -216,7 +203,6 @@ def evaluate_policy_classifier(X_test, y_policy_test, dt_policy):
             print(f"{cm[i,j]:<6}", end="")
         print()
     
-    # Sample predictions
     print("\nSample Predictions (first 10 test samples):")
     print(f"{'True Policy':<15} {'True Label':<35} {'Pred Policy':<15} {'Pred Label':<35}")
     print("-"*100)
@@ -275,25 +261,19 @@ def main():
     print("#"*70)
     
     try:
-        # Load data and models
         X_test, y_aqi_test, y_policy_test, aqi_real_test, rf_aqi, dt_policy, scaler = \
             load_data_and_models()
         
-        # Evaluate AQI regressor
         aqi_real_pred, mae_real, rmse_real, r2_real = evaluate_aqi_regressor(
             X_test, y_aqi_test, aqi_real_test, rf_aqi, scaler
         )
         
-        # Evaluate policy classifier
         acc = evaluate_policy_classifier(X_test, y_policy_test, dt_policy)
         
-        # Print detailed samples
         print("\n" + "="*70)
         print("PRINT DETAILED SAMPLES? (y/n)")
         print("="*70)
-        # For automated testing, skip this
         
-        # Final summary
         print("\n" + "#"*70)
         print("# TESTING COMPLETE!")
         print("#"*70)

@@ -2,48 +2,18 @@ import numpy as np
 
 
 def mae(y_true, y_pred):
-    """
-    Mean Absolute Error
-    
-    Parameters:
-        y_true: True values
-        y_pred: Predicted values
-        
-    Returns:
-        MAE (float)
-    """
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     return np.mean(np.abs(y_true - y_pred))
 
 
 def rmse(y_true, y_pred):
-    """
-    Root Mean Squared Error
-    
-    Parameters:
-        y_true: True values
-        y_pred: Predicted values
-        
-    Returns:
-        RMSE (float)
-    """
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     return np.sqrt(np.mean((y_true - y_pred) ** 2))
 
 
 def r2_score(y_true, y_pred):
-    """
-    R² Score (Coefficient of Determination) - for regression only
-    
-    Parameters:
-        y_true: True values
-        y_pred: Predicted values
-        
-    Returns:
-        R² Score (float, range 0-1)
-    """
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     
@@ -57,33 +27,12 @@ def r2_score(y_true, y_pred):
 
 
 def accuracy(y_true, y_pred):
-    """
-    Accuracy - for classification only
-    
-    Parameters:
-        y_true: True labels
-        y_pred: Predicted labels
-        
-    Returns:
-        Accuracy (float, range 0-1)
-    """
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     return np.mean(y_true == y_pred)
 
 
 def precision(y_true, y_pred, label):
-    """
-    Precision for a specific class
-    
-    Parameters:
-        y_true: True labels
-        y_pred: Predicted labels
-        label: The class label to compute precision for
-        
-    Returns:
-        Precision (float, range 0-1)
-    """
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     
@@ -98,17 +47,6 @@ def precision(y_true, y_pred, label):
 
 
 def recall(y_true, y_pred, label):
-    """
-    Recall for a specific class
-    
-    Parameters:
-        y_true: True labels
-        y_pred: Predicted labels
-        label: The class label to compute recall for
-        
-    Returns:
-        Recall (float, range 0-1)
-    """
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     
@@ -123,17 +61,6 @@ def recall(y_true, y_pred, label):
 
 
 def f1_score(y_true, y_pred, label):
-    """
-    F1 Score for a specific class (harmonic mean of precision and recall)
-    
-    Parameters:
-        y_true: True labels
-        y_pred: Predicted labels
-        label: The class label to compute F1 for
-        
-    Returns:
-        F1 Score (float, range 0-1)
-    """
     p = precision(y_true, y_pred, label)
     r = recall(y_true, y_pred, label)
     
@@ -145,17 +72,6 @@ def f1_score(y_true, y_pred, label):
 
 
 def confusion_matrix(y_true, y_pred, num_classes=None):
-    """
-    Compute confusion matrix for classification
-    
-    Parameters:
-        y_true: True labels
-        y_pred: Predicted labels
-        num_classes: Number of classes (if None, inferred from data)
-        
-    Returns:
-        Confusion matrix (2D array)
-    """
     y_true = np.array(y_true).astype(int)
     y_pred = np.array(y_pred).astype(int)
     
@@ -171,14 +87,6 @@ def confusion_matrix(y_true, y_pred, num_classes=None):
 
 
 def print_classification_report(y_true, y_pred, label_names=None):
-    """
-    Print a detailed classification report
-    
-    Parameters:
-        y_true: True labels
-        y_pred: Predicted labels
-        label_names: Optional names for each class
-    """
     y_true = np.array(y_true).astype(int)
     y_pred = np.array(y_pred).astype(int)
     

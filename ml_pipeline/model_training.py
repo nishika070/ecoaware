@@ -19,7 +19,7 @@ from ml_pipeline.custom_models.random_forest import RandomForest
 from ml_pipeline.custom_models.metrics import rmse, r2_score
 from utils.data_utils import load_daily_aqi, build_training_frame, get_feature_columns
 
-# ── output paths ─────────────────────────────────────────────────────────────
+# output paths 
 TRAINING_DIR = os.path.join(os.path.dirname(__file__), "..", "training")
 REGRESSOR_PATH = os.path.join(TRAINING_DIR, "aqi_regressor.pkl")
 SCALER_PATH    = os.path.join(TRAINING_DIR, "data_scaler_aqi.pkl")
@@ -47,7 +47,6 @@ def train_and_save(scaled=False):
         y = df['AQI'].values
         feature_cols = list(df.drop('AQI', axis=1).columns)
     else:
-        # ── load data ─────────────────────────────────────────────
         daily = load_daily_aqi()
         if daily.empty:
             print("ERROR: No data loaded. Check your dataset path.")
@@ -65,16 +64,15 @@ def train_and_save(scaled=False):
     print(f"Dataset shape : {X.shape}")
     print(f"Features      : {feature_cols}")
 
-    # ── scale features ─────────────────────────────────────────
     scaler = MinMaxScaler()
     X_sc = scaler.fit_transform(X)
 
-    # ── scale targets (for pre-scaled data like delhi25-26.csv) ─
+    # scale targets (for pre-scaled data like delhi25-26.csv) 
     target_scaler = MinMaxScaler()
     y_reshaped = y.reshape(-1, 1) if len(y.shape) == 1 else y
     y_sc = target_scaler.fit_transform(y_reshaped).ravel()
 
-    # ── temporal train/test split (80/20) ─────────────────────
+    # temporal train/test split (80/20)
     split_idx  = int(len(X) * 0.8)
     X_train_sc, X_test_sc = X_sc[:split_idx], X_sc[split_idx:]
     y_train_sc, y_test_sc = y_sc[:split_idx], y_sc[split_idx:]
@@ -83,7 +81,6 @@ def train_and_save(scaled=False):
     print(f"Train samples : {len(X_train_sc)}")
     print(f"Test samples  : {len(X_test_sc)}")
 
-    # ── train ─────────────────────────────────────────────────
     print("\nTraining Random Forest Regressor …")
     model = RandomForest(
         n_trees=100,
@@ -92,7 +89,6 @@ def train_and_save(scaled=False):
         mode='regression'
     )
     model.fit(X_train_sc, y_train_sc)
-    # ── evaluate ──────────────────────────────────────────────
     y_pred_sc = model.predict(X_test_sc)
     # Inverse transform for evaluation on original scale
     y_pred = target_scaler.inverse_transform(y_pred_sc.reshape(-1, 1)).ravel()
@@ -102,7 +98,6 @@ def train_and_save(scaled=False):
     print(f"\nTest RMSE : {rmse_val:.2f}")
     print(f"Test R²   : {r2_val:.3f}")
 
-    # ── save ──────────────────────────────────────────────────
     os.makedirs(TRAINING_DIR, exist_ok=True)
     joblib.dump(model,  REGRESSOR_PATH)
     joblib.dump(scaler, SCALER_PATH)
